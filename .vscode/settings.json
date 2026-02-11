@@ -1,0 +1,60 @@
+{
+    "latex-workshop.latex.tools": [
+        {
+            "name": "latexmk",
+            "command": "latexmk",
+            "args": [
+                "-xelatex",
+                "-outdir=Tmp",
+                "-synctex=1",
+                "-interaction=nonstopmode",
+                "-file-line-error",
+                "%DOC%"
+            ],
+            "env": {}
+        },
+        {
+            "name": "copy-pdf",
+            "command": "cp",
+            "args": [
+                "%DIR%/Tmp/%DOCFILE%.pdf",
+                "%DIR%/"
+            ],
+            "env": {}
+        }
+    ],
+    "latex-workshop.latex.recipes": [
+        {
+            "name": "latexmk (xelatex) -> Tmp -> Copy PDF",
+            "tools": [
+                "latexmk",
+                "copy-pdf"
+            ]
+        }
+    ],
+    "latex-workshop.latex.magic.args": [
+        "-synctex=1",
+        "-interaction=nonstopmode",
+        "-file-line-error",
+        "%DOC%"
+    ],
+    "latex-workshop.latex.outDir": "Tmp",
+    "hediet.vscode-drawio.theme": "Kennedy",
+    "latex-workshop.linting.chktex.enabled": false,
+    "latex-workshop.linting.lacheck.enabled": false,
+    "latex-workshop.message.latexlog.exclude": [
+        "Overfull \\\\hbox",
+        "Underfull \\\\hbox",
+        "LaTeX Font Warning",
+        "Package hyperref Warning: Token not allowed in a PDF string"
+    ],
+    "editor.unicodeHighlight.ambiguousCharacters": false,
+    "editor.unicodeHighlight.invisibleCharacters": false,
+    "cSpell.enabled": false,
+    "[latex]": {
+        "editor.unicodeHighlight.ambiguousCharacters": false,
+        "editor.unicodeHighlight.invisibleCharacters": false
+    },
+    "latex-workshop.latex.autoBuild.run": "never",
+    "latex-workshop.hover.preview.enabled": true
+}

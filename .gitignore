@@ -1,0 +1,15 @@
+# LaTeX build artifacts (now in Tmp, but keeping these just in case)
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.toc
+*.synctex.gz
+*.fdb_latexmk
+*.fls
+*.pdf
+*.xdv
+
+# Output directory
+Tmp/
