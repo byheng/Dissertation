@@ -1,0 +1,101 @@
+% 主控制状态机 FSM 图
+% 使用方法: 在主文档中 \input{figures/main_fsm.tex}
+% 字体: 中文使用宋体（继承文档设置），英文使用 Times New Roman（newtxtext）
+
+\begin{tikzpicture}[
+    every node/.append style={font=\rmfamily},  % 确保使用衬线字体（Times/宋体）
+    state/.style={draw, thick, rounded corners=5pt, minimum width=2.5cm, minimum height=0.9cm, align=center, font=\footnotesize},
+    state_idle/.style={state, fill=gray!20},
+    state_load/.style={state, fill=blue!15},
+    state_phase2/.style={state, fill=green!15},
+    state_phase3/.style={state, fill=orange!15},
+    state_write/.style={state, fill=purple!15},
+    state_done/.style={state, fill=yellow!20},
+    arrow/.style={->, >=stealth, thick},
+    condition/.style={font=\tiny, align=center},
+    loop_box/.style={draw, dashed, thick, rounded corners=8pt, fill=white, fill opacity=0.7},
+]
+
+% ========== 状态节点 ==========
+\node[state_idle] (idle) at (0, 0) {IDLE};
+
+\node[state_load] (load_param) at (0, -1.8) {LOAD\_PARAMS\\读取state\_param};
+
+\node[state_load] (load_input) at (0, -3.6) {LOAD\_INPUTS\\并行读取SOB/pts/uv};
+
+\node[state_phase2] (p2_init) at (0, -5.4) {PHASE2\_INIT\\初始化循环计数器};
+
+% Phase 2 循环框
+\node[loop_box, minimum width=6.5cm, minimum height=4.2cm] (p2_loop_box) at (4.5, -7.8) {};
+\node[anchor=north, font=\footnotesize\bfseries] at (4.5, -5.8) {PHASE2\_LOOP};
+
+\node[state_phase2] (p2_check) at (4.5, -6.8) {检查 SOB 编码\\(state, cam)有效?};
+\node[state_phase2] (coord_trans) at (2.5, -8.2) {COORD\\TRANSFORM};
+\node[state_phase2] (residual) at (4.5, -8.2) {RESIDUAL\\CALC};
+\node[state_phase2] (jacobian) at (6.5, -8.2) {JACOBIAN\\CALC};
+\node[state_phase2] (hessian) at (4.5, -9.4) {HESSIAN\\ACCUM};
+
+\node[state_phase3] (p3_init) at (0, -11) {PHASE3\_INIT\\初始化Schur循环};
+
+% Phase 3 循环框
+\node[loop_box, minimum width=6.5cm, minimum height=3.5cm] (p3_loop_box) at (4.5, -12.8) {};
+\node[anchor=north, font=\footnotesize\bfseries] at (4.5, -10.9) {PHASE3\_LOOP};
+
+\node[state_phase3] (v_inv) at (2.5, -12) {$\mathbf{V}^{-1}$计算\\(j==0时)};
+\node[state_phase3] (wvinv) at (6.5, -12) {$\mathbf{W}\mathbf{V}^{-1}$\\乘法};
+\node[state_phase3] (schur_update) at (4.5, -13.5) {Schur更新\\$\mathbf{A}, \mathbf{b}$};
+
+\node[state_write] (write_out) at (0, -15) {WRITE\_OUTPUT\\DMA写回结果};
+
+\node[state_done] (complete) at (0, -16.8) {COMPLETE\\置位ICR.COMPLETE};
+
+% ========== 状态转移 ==========
+% IDLE -> LOAD_PARAMS
+\draw[arrow] (idle) -- node[right, condition] {IP\_ENABLE\\$\land$ START\_H} (load_param);
+
+% LOAD_PARAMS -> LOAD_INPUTS
+\draw[arrow] (load_param) -- node[right, condition] {读取完成} (load_input);
+
+% LOAD_INPUTS -> PHASE2_INIT
+\draw[arrow] (load_input) -- node[right, condition] {加载完成} (p2_init);
+
+% PHASE2_INIT -> PHASE2_LOOP
+\draw[arrow] (p2_init) -- ++(2, 0) |- (p2_check);
+
+% Phase 2 内部流程
+\draw[arrow] (p2_check) -- node[left, condition] {有效} (coord_trans);
+\draw[arrow] (coord_trans) -- (residual);
+\draw[arrow] (residual) -- (jacobian);
+\draw[arrow] (jacobian) -- (hessian);
+
+% Phase 2 跳过路径
+\draw[arrow, dashed] (p2_check.east) -- ++(1.5, 0) node[right, condition] {无效\\跳过} |- (hessian.east);
+
+% Phase 2 循环返回
+\draw[arrow] (hessian.south) -- ++(0, -0.3) -- ++(3.5, 0) -- ++(0, 3.0) -- ++(-3.5, 0) -- (p2_check.east);
+\node[condition] at (8.5, -8) {cam++\\state++\\pt++};
+
+% PHASE2 -> PHASE3_INIT
+\draw[arrow] (hessian.west) -- ++(-3, 0) |- node[left, condition, pos=0.75] {pt $\geq$ num\_pts} (p3_init);
+
+% PHASE3_INIT -> PHASE3_LOOP
+\draw[arrow] (p3_init) -- ++(2, 0) |- (v_inv);
+
+% Phase 3 内部流程
+\draw[arrow] (v_inv) -- (wvinv);
+\draw[arrow] (wvinv) -- (schur_update);
+
+% Phase 3 循环返回
+\draw[arrow] (schur_update.south) -- ++(0, -0.3) -- ++(3.5, 0) -- ++(0, 2.0) -- ++(-5.5, 0) -- (v_inv.west);
+\node[condition] at (8.5, -12.5) {pt++\\j++};
+
+% PHASE3 -> WRITE_OUTPUT
+\draw[arrow] (schur_update.west) -- ++(-3, 0) |- node[left, condition, pos=0.8] {j $\geq$ state\_size} (write_out);
+
+% WRITE_OUTPUT -> COMPLETE
+\draw[arrow] (write_out) -- node[right, condition] {写入完成} (complete);
+
+% COMPLETE -> IDLE (返回)
+\draw[arrow] (complete.west) -- ++(-2, 0) -- ++(0, 16.8) -- (idle.west);
+
+\end{tikzpicture}

@@ -18,18 +18,29 @@
 \setcounter{page}{1}% 开始页码
 \pagenumbering{Roman}% 页码符号
 
-中文摘要、英文摘要、目录、论文正文、参考文献、附录、致谢、攻读学位期间发表的学术论文与其他相关学术成果等均须由另页右页（奇数页）开始。
+同步定位与地图构建（SLAM）是无人机及自主移动机器人实现环境感知与导航的核心技术。然而，随着算法精度的提升，后端优化算子带来的巨大计算开销成为了嵌入式移动平台实时运行的主要瓶颈。针对这一问题，本文设计并实现了一种基于 FPGA 的 SLAM 后端软硬协同加速器。
 
-\keywords{中国科学院大学，学位论文，模板}% 中文关键词
+本文深入分析了视觉惯性里程计（VIO）算法的计算特征，提出了一种高效的系统任务划分方案。将计算密集型的 Jacobi 矩阵生成、Hessian 矩阵累加以及舒尔补（Schur Complement）消元运算卸载至 FPGA 逻辑端，利用硬件流水线提升并行度；而将灵活的系统状态维护逻辑保留在 ARM 处理器端。
+
+为了进一步优化能效，本文创新性地引入了 8 位稀疏观测位图（SOB）编码协议。通过硬件逻辑实时解析特征点的观测活跃情况，实现了状态级旁路与相机级时钟门控，有效跳过了 Hessian 矩阵中的零块计算。针对片上存储资源受限的挑战，本文设计了一套紧凑型存储管理方案，利用隐式索引技术将 Hessian 矩阵所需的 BRAM 资源压缩了 86.9\%。
+
+实验结果表明，在 Zynq UltraScale+ MPSoC ZCU102 平台上，本文设计的加速器在 200~MHz 工作频率下，相比嵌入式 ARM CPU 实现了约 3.85 倍的端到端运行加速。在 EuRoC 权威数据集上的测试验证了系统定位误差均方根值仅比全浮点软件方案高出 1.2~cm，满足了 25~Hz 以上的高频实时后端更新需求。
+
+\keywords{视觉 SLAM，视觉惯性里程计，FPGA，硬件加速，软硬协同，舒尔补}
 %-
 %-> 英文摘要
 %-
 \intobmk\chapter*{Abstract}% 显示在书签但不显示在目录
 
-Chinese abstracts, English abstracts, table of contents, the main contents, references, appendix, acknowledgments, author's resume and academic papers published during the degree study and other relevant academic achievements must start with another right page (odd-numbered page).
-    %- the current style, comment all the lines in plain style definition.
+Simultaneous Localization and Mapping (SLAM) is a fundamental technology for environment perception and navigation in Unmanned Aerial Vehicles (UAVs) and autonomous mobile robots. However, as algorithmic precision improves, the substantial computational overhead incurred by backend optimization operators has become a major bottleneck for real-time execution on embedded mobile platforms. To address this issue, this thesis designs and implements a hardware-software co-designed SLAM backend accelerator based on FPGA.
 
-\KEYWORDS{University of Chinese Academy of Sciences, Thesis, LaTeX Template}% 英文关键词
+Through an in-depth analysis of the computational characteristics of Visual-Inertial Odometry (VIO) algorithms, an efficient system task partitioning scheme is proposed. Computation-intensive tasks, including Jacobian matrix generation, Hessian matrix accumulation, and Schur complement elimination, are offloaded to the FPGA logic to leverage hardware pipelining for enhanced parallelism, while flexible state maintenance logic is retained on the ARM processor.
+
+To further optimize power efficiency, an 8-bit Sparse Observation Bitmap (SOB) encoding protocol is innovatively introduced. By parsing the observation activity of feature points in real-time within the hardware logic, state-level bypass and camera-level clock gating are implemented, effectively skipping null calculations in the Hessian matrix. Addressing the challenge of limited on-chip memory, a compact storage management scheme is designed, which compresses the required BRAM resources for the Hessian matrix by 86.9\% using implicit indexing techniques.
+
+Experimental results demonstrate that on the Zynq UltraScale+ MPSoC ZCU102 platform, the proposed accelerator achieved an approximately 3.85x end-to-end speedup compared to the embedded ARM CPU. Tests on the authoritative EuRoC dataset verified that the root mean square error (RMSE) of the system increases by only 1.2 cm compared to the full-precision software solution, fulfilling the requirements for high-frequency real-time backend updates at over 25 Hz.
+
+\KEYWORDS{Visual SLAM, Visual-Inertial Odometry, FPGA, Hardware Acceleration, Hardware-Software Co-design, Schur Complement}
 
 \pagestyle{enfrontmatterstyle}%
 \cleardoublepage\pagestyle{frontmatterstyle}%

@@ -1,0 +1,118 @@
+% BA 硬件加速器架构图
+% 使用方法: \input{figures/BA_accelerator_arch.tex}
+% 符号与论文 main.tex 保持一致
+% 字体: 中文使用宋体（继承文档设置），英文使用 Times New Roman（newtxtext）
+
+\begin{tikzpicture}[
+    scale=1.0,
+    every node/.append style={font=\rmfamily},  % 确保使用衬线字体（Times/宋体）
+    % 模块样式
+    mainmodule/.style={draw, thick, rounded corners=3pt, minimum width=2.2cm, minimum height=0.7cm, align=center, font=\small},
+    submodule/.style={draw, thick, rounded corners=2pt, minimum width=1.8cm, minimum height=0.6cm, align=center, font=\scriptsize},
+    buffer/.style={draw, thick, fill=blue!15, minimum width=1.3cm, minimum height=0.5cm, align=center, font=\scriptsize},
+    compute/.style={draw, thick, fill=green!15, rounded corners=2pt, minimum width=1.5cm, minimum height=0.5cm, align=center, font=\scriptsize},
+    interface/.style={draw, thick, fill=yellow!25, rounded corners=3pt, minimum width=0.8cm, minimum height=1.8cm, align=center, font=\small},
+    phasebox/.style={draw, very thick, rounded corners=5pt, fill=#1, fill opacity=0.08},
+    arrow/.style={->, >=stealth, thick},
+    dataarrow/.style={->, >=stealth, thick, black},
+    ctrlarrow/.style={->, >=stealth, dashed, gray},
+]
+
+% ========== 外部接口 (左侧竖排) ==========
+\node[interface] (ps) at (-1.2, -2.0) {\rotatebox{90}{PS (ARM) CPU}};
+\node[interface, fill=orange!20] (ddr) at (-1.2, -6.8) {\rotatebox{90}{DDR Memory}};
+
+% ========== 加速器边框 ==========
+\draw[very thick, rounded corners=6pt, fill=gray!5] (0, 0) rectangle (8.5, -9.0);
+\node[anchor=north west, font=\bfseries\small] at (0.2, 0) {Schur Kernel Accelerator (PL)};
+
+% ========== AXI 接口 ==========
+\node[submodule, fill=yellow!15, minimum width=1.6cm] (axilite) at (1.2, -2.0) {AXI-Lite\\配置接口};
+\node[submodule, fill=yellow!15, minimum width=1.6cm] (aximm) at (1.2, -6.8) {AXI-MM\\DMA};
+
+% 外部连接
+\draw[arrow] (ps.east) -- (axilite.west);
+\draw[<->, thick] (ddr.east) -- (aximm.west);
+
+% ========== 控制单元 ==========
+\node[mainmodule, fill=orange!10, minimum width=1.6cm] (ctrl) at (1.2, -3.6) {主控制\\FSM};
+\draw[arrow] (axilite.south) -- (ctrl.north);
+
+% ========== Phase 2 区域 ==========
+\draw[phasebox=blue!40] (2.4, -0.6) rectangle (8.2, -4.2);
+\node[anchor=north west, font=\scriptsize, blue!70] at (2.6, -0.65) {雅可比计算模块};
+
+% Phase 2 输入缓存
+\node[buffer] (sob) at (3.5, -1.45) {SOB 解码器};
+\node[buffer] (pts) at (5.3, -1.45) {路标点 $\mathbf{L}_j$};
+\node[buffer] (feat) at (7.1, -1.45) {观测 $\mathbf{z}_{ij}$};
+
+% 坐标变换
+\node[compute, minimum width=4.2cm] (coord) at (5.3, -2.2) {坐标变换: $\mathbf{p}_w \to \mathbf{p}_i \to \mathbf{p}_c$};
+
+% 残差与雅可比
+\node[compute, minimum width=1.6cm] (residual) at (3.9, -2.95) {残差 $\mathbf{r}_{ij}$};
+\node[compute, minimum width=2cm] (jacobian) at (6.7, -2.95) {雅可比 $\mathbf{J}_p$, $\mathbf{J}_m$};
+
+% Hessian 累积器
+\node[compute, minimum width=4.6cm, fill=cyan!15] (accum) at (5.3, -3.75) {Hessian: $\mathbf{H}_{pp}$, $\mathbf{H}_{pm}$, $\mathbf{H}_{mm}$, $\mathbf{b}_p$, $\mathbf{b}_m$};
+
+% Phase 2 内部连接
+\draw[dataarrow] (sob.south) -- (3.5, -1.92);
+\draw[dataarrow] (pts.south) -- (5.3, -1.92);
+\draw[dataarrow] (feat.south) -- (7.1, -1.92);
+\draw[dataarrow] (3.9, -2.48) -- (residual.north);
+\draw[dataarrow] (6.7, -2.48) -- (jacobian.north);
+\draw[dataarrow] (residual.south) -- (3.9, -3.47);
+\draw[dataarrow] (jacobian.south) -- (6.7, -3.47);
+
+% ========== 中间缓存 ==========
+\node[buffer, minimum width=4.8cm, fill=purple!15] (interbuf) at (5.3, -5.0) {缓存: $\mathbf{H}_{pp}$, $\mathbf{H}_{pm}$, $\mathbf{H}_{mm}$, $\mathbf{b}_p$, $\mathbf{b}_m$};
+
+% Phase 2 到中间缓存
+\draw[dataarrow] (accum.south) -- (interbuf.north);
+
+% ========== Phase 3 区域 ==========
+\draw[phasebox=red!40] (2.4, -5.8) rectangle (8.2, -8.1);
+\node[anchor=north west, font=\scriptsize, red!70] at (2.6, -5.75) {Schur 消元模块};
+
+% Phase 3 计算模块
+\node[compute, fill=red!15, minimum width=1.4cm] (vinv) at (3.5, -6.6) {$\mathbf{H}_{mm}^{-1}$};
+\node[compute, fill=red!15, minimum width=1.5cm] (wv) at (5.3, -6.6) {$\mathbf{H}_{pm}\mathbf{H}_{mm}^{-1}$};
+\node[compute, fill=red!15, minimum width=1.4cm] (schur) at (7.1, -6.6) {$\mathbf{H}_{pp}$ 更新};
+
+% 输出
+\node[buffer, minimum width=4.8cm, fill=green!20] (output) at (5.3, -7.55) {输出: $\mathbf{H}_{pp} - \mathbf{H}_{pm}\mathbf{H}_{mm}^{-1}\mathbf{H}_{pm}^T$};
+
+% Phase 3 内部连接
+\draw[dataarrow] (vinv.east) -- (wv.west);
+\draw[dataarrow] (wv.east) -- (schur.west);
+\draw[dataarrow] (schur.south) -- (7.1, -7.22);
+
+% 中间缓存到 Phase 3
+\draw[dataarrow] (interbuf.south) -- (5.3, -5.8);
+
+% ========== DMA 数据流 ==========
+% DMA 读取到 Phase 2
+\draw[dataarrow] (aximm.east) -- (2.2, -6.8) -- (2.2, -1.45) -- (sob.west);
+
+% 输出写回 DMA
+\draw[dataarrow] (output.west) -- (1.2, -7.55) -- (aximm.south);
+
+% 控制信号
+\draw[ctrlarrow] (ctrl.east) -- (2.4, -3.6);
+\draw[ctrlarrow] (ctrl.south) -- (1.2, -6.0) -- (2.4, -6.0);
+
+% ========== 图例 ==========
+% 通过形状区分: 缓存为直角矩形, 计算单元为圆角矩形
+\node[font=\scriptsize\bfseries] at (0.37, -8.65) {图例:};
+\node[draw, thick, minimum width=0.7cm, minimum height=0.3cm] at (1.3, -8.65) {};
+\node[font=\tiny, anchor=west] at (1.7, -8.65) {缓存};
+\node[draw, thick, rounded corners=2pt, minimum width=0.7cm, minimum height=0.3cm] at (3.2, -8.65) {};
+\node[font=\tiny, anchor=west] at (3.6, -8.65) {计算单元};
+\draw[->, >=stealth, thick, black] (5.0, -8.65) -- (5.6, -8.65);
+\node[font=\tiny, anchor=west] at (5.7, -8.65) {数据流};
+\draw[->, >=stealth, dashed, gray] (6.8, -8.65) -- (7.4, -8.65);
+\node[font=\tiny, anchor=west] at (7.5, -8.65) {控制};
+
+\end{tikzpicture}

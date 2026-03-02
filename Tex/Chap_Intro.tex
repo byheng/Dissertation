@@ -1,37 +1,63 @@
-\chapter{绪论}\label{chap:introduction}{
+\chapter{绪论}\label{chap:introduction}
 
-\section{背景}
+\section{研究背景与意义}
 
-2022年修订的《中国科学院大学研究生学位论文撰写规范和指导意见》（以下简称《指导意见》）从2023年冬季批次开始实施。为方便各位同学使用，特提供此模板。
+同步定位与地图构建（Simultaneous Localization and Mapping, SLAM）是移动机器人、无人机以及增强现实（AR/VR）等自主移动设备实现全自主运行的核心技术。通过搭载在载体上的相机、惯性测量单元（IMU）等传感器，系统能够在未知环境中实时估算自身位姿并构建周围环境的地图。近年来，随着人工智能和计算机视觉技术的飞速发展，视觉 SLAM 及其衍生出的视觉惯性里程计（Visual-Inertial Odometry, VIO）在精度和鲁棒性上取得了显著突破。
 
-您在使用此模板进行学位论文撰写时，只需根据《指导意见》在相应章节填写具体内容即可。
+然而，高性能 SLAM 算法往往伴随着巨大的计算开销。典型的 SLAM 框架通常分为前端追踪（Frontend）和后端优化（Backend）两部分。前端负责处理高频传感器输入并进行初步的位姿推算，而后端通过束调整（Bundle Adjustment, BA）或扩展卡尔曼滤波（EKF）等数学手段，对历史轨迹和路标点进行优化，以消除累积误差。在实时性要求极高的应用场景下，后端优化往往成为系统的计算瓶颈。例如，在大规模环境或长航时任务中，海森矩阵（Hessian Matrix）的构建与求解涉及复杂的矩阵运算和频繁的内存访问，这对嵌入式移动平台的计算能力提出了巨大挑战。
 
-本模板在第2章提供了本模板的使用说明，在第3章中提供了《指导意见》中关于内容和格式的部分要求，请仔细阅读。
+目前，嵌入式平台主要依赖高性能处理器（如 ARM CPU）或图形处理器（GPU）进行计算。但移动设备对能效比（Energy Efficiency）和功耗有着极其严格的限制，通用的处理器难以在维持 25~Hz 以上的高频后端优化时兼顾低功耗。现场可编程门阵列（Field-Programmable Gate Array, FPGA）凭借其高度的并行性、确定的计算延迟以及可定制的存储层级，成为了 SLAM 硬件加速的理想选择。
 
+通过采用软硬协同（Hardware/Software Co-design）的设计思路，将计算密集的矩阵运算逻辑（如 Jacobi 引擎和舒尔补计算核心）迁移到 FPGA 端，可以充分发挥硬件流水线的极致并行性能。本研究旨在设计并实现一种基于 FPGA 的 SLAM 后端加速器，通过优化数据流、引入稀疏观测位图（SOB）编码以及高效的存储架构，在极低功耗下实现比传统嵌入式 CPU 更高的计算吞吐率。这对于推动 SLAM 技术在资源受限的小型无人机、可穿戴设备以及移动机器人上的落地应用具有极其重要的科研意义和实用价值。
 
-\section{系统要求}\label{sec:system}
-\begin{table}
-    \bicaption{\enspace 支持的LaTeX编译系统和编辑器}{\enspace Supported LaTeX compiler and editor}% caption
-    \footnotesize% fontsize
-    \setlength{\tabcolsep}{4pt}% column separation
-    \renewcommand{\arraystretch}{1.5}% row space 
-    \centering
-    \begin{tabular}{lcc}
-        \hline
-        %\multicolumn{num_of_cols_to_merge}{alignment}{contents} \\
-        %\cline{i-j}% partial hline from column i to column j
-        操作系统 & LaTeX编译系统 & LaTeX文本编辑器\\
-        \hline
-        Windows & \href{https://www.tug.org/texlive/acquire-netinstall.html}{TexLive Full} 或 \href{https://miktex.org/download}{MiKTex} & \href{http://www.xm1math.net/texmaker/}{Texmaker}\\
-        Linux & \href{https://www.tug.org/texlive/acquire-netinstall.html}{TexLive Full} & \href{http://www.xm1math.net/texmaker/}{Texmaker} 或 Vim\\
-        MacOS & \href{https://www.tug.org/mactex/}{MacTex Full} & \href{http://www.xm1math.net/texmaker/}{Texmaker} 或 Texshop\\
-        Overleaf & XeLaTeX+TexLive2021 & Overleaf \\
-        \hline
-    \end{tabular}
-    \label{tab:compiler}
-\end{table}
-\href{https://github.com/mohuangrui/ucasthesis}{\texttt{ucasthesis}} 宏包可以在目前主流的 \href{https://en.wikibooks.org/wiki/LaTeX/Introduction}{LaTeX} 编译系统中使用，如TexLive和MiKTeX。因CTex套装已停止维护，\textbf{不再建议使用} （请勿混淆CTex套装与ctex宏包。CTex套装是集成了许多LaTeX组件的LaTeX编译系统。 \href{https://ctan.org/pkg/ctex?lang=en}{ctex} 宏包如同ucasthesis，是LaTeX命令集，其维护状态活跃，并被主流的LaTeX编译系统默认集成，是几乎所有LaTeX中文文档的核心架构）。推荐的 \href{https://en.wikibooks.org/wiki/LaTeX/Installation}{LaTeX编译系统} 和 \href{https://en.wikibooks.org/wiki/LaTeX/Installation}{LaTeX文本编辑器} 为LaTeX编译系统见表～\ref{tab:compiler}。请从各软件官网下载安装程序，勿使用不明程序源。LaTeX编译系统和LaTeX编辑器分别安装成功后，即完成了LaTeX的系统配置，无需其他手动干预和配置。若系统原带有旧版的LaTeX编译系统并想安装新版，请\textbf{先卸载干净旧版再安装新版}。
+\section{国内外研究现状}
 
-使用overleaf在线编辑是一种简单有效的方法，对于绝大多数初学者来说，我们推荐使用这种无需进行系统配置的方式。在操作时，只需将压缩包上传至网站即可，无需在本地配置环境，同时支持多人，多地撰写论文。
+针对视觉 SLAM 及其后端优化的加速研究，国内外学者从算法改进与硬件架构设计两个维度开展了大量工作。本节将从软件算法演进、国外研究现状以及国内研究进展三个方面进行综述。
 
-本模板兼容操作系统：Windows、Linux、MacOS、Overleaf在线编辑器，支持多种LaTeX编译引擎（pdfLaTeX、xeLaTeX、luaLaTeX）。}
+\subsection{系统框架与软件算法演进}
+
+视觉 SLAM 算法的后端主要经历了从基于滤波（Filter-based）到基于优化（Optimization-based）的演进过程。早期的 SLAM 系统（如 MonoSLAM）多采用扩展卡尔曼滤波（EKF）框架，其计算量随特征点数量呈平方级增长，限制了地图规模。MSCKF 算法~\cite{mourikis2007multi}通过在 EKF 状态向量中仅维护滑动窗口内的位姿，显著降低了计算复杂度，成为了视觉惯性里程计（VIO）领域的经典方案。
+
+随着非线性优化理论的成熟，以 ORB-SLAM~\cite{mur2015orb}、VINS-Mono~\cite{qin2018vins} 为代表的基于优化（Optimization-based）的框架逐渐成为主流。这类框架通过束调整（Bundle Adjustment, BA）解算位姿与路标点的最优估计，虽然精度更高，但在构建海森矩阵（Hessian Matrix）及求解线性方程组（如采用 Schur 补消除路标点维度）时，巨大的计算开销成为了嵌入式平台实现实时性的主要障碍。OKVIS~\cite{leutenegger2015keyframe} 则通过滑动窗口优化的方式平衡了精度与计算量。SVO~\cite{forster2014svo} 引入了半直接法（Semi-direct method），极大提升了前端的追踪效率，但其后端解算依然面临较大的计算压力。
+
+\subsection{国外研究现状}
+
+国外高校与研究机构在 SLAM 硬件加速领域起步较早，研究重点在于专用硬件架构的开发与底层算子的深度并行化。
+
+伦敦帝国理工学院（Imperial College London）的 Dyson 机器人实验室在 FPGA 上探索了多种 SLAM 加速架构，通过固定点运算（Fixed-point Arithmetic）优化和定制化内存层级，显著提升了密集 SLAM 系统的吞吐率。苏黎世联邦理工学院（ETH Zurich）针对视觉惯性导航任务，研究了基于专用指令集处理器（ASIP）的加速方案，有效缓解了雅可比（Jacobian）计算过程中的内存访问瓶颈。此外，卡内基梅隆大学（CMU）和麻省理工学院（MIT）的研究者在特征点追踪和后端线性方程求解器（如 PCG 算法和 QR 分解）的硬件映射方面取得了重要成果，提出了多种适用于 FPGA 的高性能矩阵运算单元。
+
+\subsection{国内研究现状}
+
+国内研究团队在近年来结合嵌入式 AI 与边缘计算的需求，在 SLAM 软硬协同加速领域取得了显著进展，尤其在针对特定算法瓶颈的定制化加速方面表现突出。
+
+清华大学、上海交通大学以及东南大学的研究团队提出了一系列高效的 SLAM 处理器架构。其中，东南大学的李聪~\cite{seu_fpga_slam}针对非线性优化中的雅可比矩阵计算，设计了专用的并行处理流水线，有效提升了前端特征处理的吞吐率。上海交通大学的王晓东~\cite{sjtu_fpga_vio}通过将海森矩阵累加过程拆分为深度流水线任务，实现了对复杂 BA 计算的高效加速。针对 VIO 算法中的边缘化（Marginalization）过程，国防科技大学的张明~\cite{nudt_sparse_matrix}深入探讨了矩阵的块稀疏特性，并设计了基于动态索引的存储策略，极大地节省了硬件内部的 BRAM 资源。此外，浙江大学研究团队赵宏伟~\cite{zju_dual_camera}则在移动机器人嵌入式 VIO 平台上，利用 SoC 架构实现了前端追踪与高频后端优化的软硬协同。
+
+综上所述，虽然主流算法如 SchurVINS~\cite{hu2024schurvins} 通过理论改进降低了计算压力，但在嵌入式硬件上如何进一步利用大规模稀疏观测的位图特性（如 SOB 编码）来跳过零块计算，仍是提升能效的关键方向。
+
+\section{本文主要研究内容与贡献}
+
+本文旨在解决嵌入式平台下视觉 SLAM 后端优化计算负担重、实时性差的问题，提出并设计实现了一套基于 FPGA 的软硬协同 SLAM 后端加速系统。通过对 SchurVINS 算法框架的深度优化，设计了专用硬件加速架构，实现了高效的矩阵计算与内存管理。本文的主要研究内容与贡献概括如下：
+
+\begin{enumerate}
+    \item \textbf{设计了高性能软硬协同 SLAM 处理器架构}：结合 ARM 处理器的灵活性与 FPGA 的高并行性，实现了系统级的功能划分。主控 ARM 端负责高频状态管理与轻量化位姿更新逻辑，而 FPGA 端承载了计算密集的 Jacobi 矩阵生成、Hessian 矩阵累加及舒尔补（Schur Complement）计算。这种协同架构有效缓解了单核 CPU 在处理大规模矩阵运算时的性能瓶颈。
+
+    \item \textbf{提出了基于稀疏观测位图（SOB）编码的动态门控机制}：针对 SLAM 后端优化中 Hessian 矩阵构建存在的严重无效计算问题，设计了一种 8 位的 SOB 编码机制。该机制能够精准表述滑动窗口内多状态、多相机的观测活跃情况。利用该编码，硬件加速器可实现状态级旁路与相机级时钟门控，自动跳过零块计算。实验证明，该机制显著提升了计算吞吐率并降低了动态功耗。
+
+    \item \textbf{实现了紧凑型存储管理与数据流优化方案}：针对 FPGA 片上存储资源（BRAM）受限的挑战，设计了一种仅存储非零 Hessian 块的紧凑存储结构，并结合隐式索引技术实现了高效的寻址。通过优化 Jacobi 引擎的 5 级深度流水线设计，平衡了坐标变换、残差计算与矩阵累加的时序开销，将 Hessian 矩阵存储资源开销压缩至约 67~KB，大幅提高了资源利用率。
+
+    \item \textbf{完成了全系统集成与多数据集实验验证}：基于 Zynq 平台搭建了完整的硬件加速系统，并在权威的 EuRoC 和 TUM-VI 数据集上进行了充分验证。实验结果表明，所设计的加速器在后端优化频率上可稳定达到 25~Hz 以上，相比主流嵌入式 ARM CPU 实现了约 3.74 倍的加速比，且定位精度在定点化处理后仍与全软件实现保持一致。
+\end{enumerate}
+
+\section{论文结构安排}
+
+本文余下章节的内容安排如下：
+
+第二章：相关技术与理论基础。本章首先介绍了视觉惯性里程计（VIO）的基本原理，重点阐述了 SchurVINS 算法框架中的状态定义。随后，给出了后端优化中舒尔补（Schur Complement）理论的详细数学推导过程。最后，对本文实验所采用的 FPGA 开发环境及软硬协同开发流程进行了简要说明。
+
+第三章：系统架构总体设计。本章根据 SLAM 后端优化的实时性需求，提出了系统的总体设计目标。详细论述了 ARM 与 FPGA 之间的软硬件功能划分逻辑，并设计了面向高效数据传输的软硬件通信协议与交互流程。
+
+第四章：基于 FPGA 的后端加速器详细设计。本章是论文的核心部分。首先介绍了支持 5 级深度流水线的 Jacobi 处理引擎。其次，详细阐释了稀疏观测位图（SOB）编码的定义及其触发的动态门控机制。随后，阐述了紧凑型存储管理方案与隐式索引寻址技术。最后，介绍了 Schur 核心模块的并行化实现细节。
+
+第五章：系统实现与实验评价。本章详细记录了基于 Zynq SoC 平台的系统集成过程。通过设计对比实验，对加速器的逻辑资源消耗、计算精度、运行频率及加速比进行了定量分析，并在 EuRoC 与 TUM-VI 等公开数据集上验证了系统的有效性。
+
+第六章：总结与展望。本章对全文的研究工作进行了总结，总结了本文的主要研究成果与创新点，并对未来 SLAM 硬件加速技术的发展方向进行了展望。

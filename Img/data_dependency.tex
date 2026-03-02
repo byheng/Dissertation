@@ -1,0 +1,102 @@
+% 数据依赖图
+% 使用方法: 在主文档中 \input{figures/data_dependency.tex}
+% 字体: 中文使用宋体（继承文档设置），英文使用 Times New Roman（newtxtext）
+
+\begin{tikzpicture}[
+    every node/.append style={font=\rmfamily},  % 确保使用衬线字体（Times/宋体）
+    data/.style={draw, thick, rounded corners=3pt, fill=blue!10, minimum width=1.8cm, minimum height=0.6cm, align=center, font=\footnotesize},
+    proc/.style={draw, thick, rounded corners=3pt, fill=green!15, minimum width=2.2cm, minimum height=0.7cm, align=center, font=\footnotesize},
+    output/.style={draw, thick, rounded corners=3pt, fill=orange!15, minimum width=1.5cm, minimum height=0.6cm, align=center, font=\footnotesize},
+    final/.style={draw, thick, rounded corners=3pt, fill=red!15, minimum width=2.5cm, minimum height=0.7cm, align=center, font=\footnotesize},
+    arrow/.style={->, >=stealth, thick},
+    group_box/.style={draw, dashed, thick, rounded corners=5pt},
+]
+
+% ========== 输入数据 ==========
+\node[data] (state_quat) at (0, 0) {state\_quat};
+\node[data] (state_pos) at (0, -1) {state\_pos};
+\node[data] (pts_pw) at (0, -2) {pts\_pw};
+\node[data] (intrin) at (0, -3) {intrin\_*};
+
+\node[group_box, fit=(state_quat)(state_pos)(pts_pw)(intrin), inner sep=5pt] (input_box) {};
+\node[anchor=south, font=\scriptsize\bfseries] at (input_box.north) {输入数据};
+
+% ========== 坐标变换 ==========
+\node[proc] (coord_trans) at (4, -1.5) {坐标变换\\$\mathbf{P}_w \to \mathbf{P}_c$};
+
+\draw[arrow] (state_quat) -- (coord_trans);
+\draw[arrow] (state_pos) -- (coord_trans);
+\draw[arrow] (pts_pw) -- (coord_trans);
+\draw[arrow] (intrin) -- (coord_trans);
+
+% ========== 残差计算 ==========
+\node[output] (Pc) at (7, -1) {$\mathbf{P}_c$};
+\node[proc] (residual) at (10, -1) {残差计算};
+\node[output] (r) at (13, -1) {$\mathbf{r}$};
+
+\draw[arrow] (coord_trans) -- (Pc);
+\draw[arrow] (Pc) -- (residual);
+\draw[arrow] (residual) -- (r);
+
+% ========== 雅可比计算 ==========
+\node[proc] (jacobian) at (7, -3) {雅可比计算};
+
+\draw[arrow] (Pc) -- (jacobian);
+\draw[arrow] (coord_trans) |- (jacobian);
+
+% ========== 雅可比输出 ==========
+\node[output] (jx) at (4, -4.5) {$\mathbf{J}_p$};
+\node[output] (jf) at (7, -4.5) {$\mathbf{J}_m$};
+\node[output] (dr_dpc) at (10, -4.5) {$\frac{\partial r}{\partial p_c}$};
+
+\draw[arrow] (jacobian) -- (jx);
+\draw[arrow] (jacobian) -- (jf);
+\draw[arrow] (jacobian) -- (dr_dpc);
+
+% ========== Hessian 累积 ==========
+\node[group_box, minimum width=10cm, minimum height=1.8cm, fill=yellow!5] (hessian_box) at (7, -6.5) {};
+\node[anchor=north, font=\scriptsize\bfseries] at (7, -5.7) {Hessian 累积};
+
+\node[output] (A) at (3.5, -6.8) {$\mathbf{A}$\\(累加)};
+\node[output] (b) at (5.5, -6.8) {$\mathbf{b}$\\(累加)};
+\node[output] (V) at (7.5, -6.8) {$\mathbf{V}$\\(累加)};
+\node[output] (g) at (9.5, -6.8) {$\mathbf{g}$\\(累加)};
+
+\draw[arrow] (jx) -- (A);
+\draw[arrow] (jx) -- (b);
+\draw[arrow] (r.south) -- ++(0, -1) -| (b);
+\draw[arrow] (jf) -- (V);
+\draw[arrow] (jf) -- (g);
+\draw[arrow] (r.south) -- ++(0, -1) -| (g);
+
+% W 矩阵
+\node[output] (W) at (11.5, -6.8) {$\mathbf{W}$};
+\draw[arrow] (jx.south) -- ++(0, -0.5) -| (W);
+\draw[arrow] (jf.south) -- ++(0, -0.5) -| (W);
+
+% ========== Schur 消元 ==========
+\node[final] (schur) at (7, -8.5) {Schur消元\\需要 $\mathbf{V}^{-1}, \mathbf{W}, \mathbf{g}$ 全部就绪};
+
+\draw[arrow] (A) -- (schur);
+\draw[arrow] (b) -- (schur);
+\draw[arrow] (V) -- (schur);
+\draw[arrow] (g) -- (schur);
+\draw[arrow] (W) -- (schur);
+
+% ========== 最终输出 ==========
+\node[final, fill=green!20] (output) at (7, -10) {$\mathbf{A}_{schur}, \mathbf{b}_{schur}$\\(输出)};
+
+\draw[arrow] (schur) -- (output);
+
+% ========== 关键依赖说明 ==========
+\node[align=left, font=\scriptsize] at (13, -7.5) {
+\textbf{关键依赖点:}\\
+1. Schur消元必须等待\\
+\quad Phase 2 完全结束\\
+2. 同一点的多个特征\\
+\quad 观测可并行处理\\
+3. 不同点之间在\\
+\quad Phase 2 完全独立
+};
+
+\end{tikzpicture}

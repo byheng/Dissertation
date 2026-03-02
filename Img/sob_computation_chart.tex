@@ -1,0 +1,55 @@
+% SOB 编码计算量优化效果 - 折线图
+% 使用方法: \input{figures/sob_computation_chart.tex}
+% 字体: 中文使用宋体（继承文档设置），英文使用 Times New Roman（newtxtext）
+
+\begin{tikzpicture}
+\begin{axis}[
+    every node/.append style={font=\rmfamily},  % 确保使用衬线字体（Times/宋体）
+    width=0.85\linewidth,
+    height=5.5cm,
+    xlabel={稀疏率 (\%)},
+    ylabel={迭代次数},
+    xmin=30, xmax=80,
+    ymin=0, ymax=2200,
+    xtick={37.5, 50, 62.5, 73.2},
+    legend pos=north west,
+    legend style={font=\small},
+    grid=major,
+    grid style={dashed, gray!30},
+    axis lines=left,
+    xlabel style={font=\small},
+    ylabel style={font=\small},
+    tick label style={font=\small},
+]
+
+% 朴素迭代 - 蓝色实线
+\addplot[
+    color=blue,
+    mark=square*,
+    thick,
+    mark size=3pt,
+] coordinates {
+    (37.5, 400)
+    (50.0, 1200)
+    (62.5, 1600)
+    (73.2, 2048)
+};
+\addlegendentry{朴素迭代}
+
+% 优化迭代 - 红色虚线
+\addplot[
+    color=red,
+    mark=triangle*,
+    thick,
+    dashed,
+    mark size=3pt,
+] coordinates {
+    (37.5, 152)
+    (50.0, 600)
+    (62.5, 974)
+    (73.2, 1433)
+};
+\addlegendentry{SOB 优化迭代}
+
+\end{axis}
+\end{tikzpicture}

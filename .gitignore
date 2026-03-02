@@ -13,3 +13,4 @@
 
 # Output directory
 Tmp/
+.DS_Store

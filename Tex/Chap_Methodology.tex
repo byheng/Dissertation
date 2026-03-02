@@ -1,0 +1,117 @@
+\chapter{相关技术与理论基础}\label{chap:methodology}
+
+\section{视觉惯性里程计基础知识}
+
+视觉惯性里程计（Visual-Inertial Odometry, VIO）是一种通过融合视觉传感器（如单目或双目相机）提供的图像信息与惯性测量单元（Inertial Measurement Unit, IMU）提供的运动信息，实现载体运动轨迹估计和自身位姿解算的算法。相较于单纯的视觉 SLAM，VIO 能够通过 IMU 的高频测量数据弥补视觉追踪在快速运动或剧烈光照变化下的鲁棒性不足，同时视觉信息可以有效校正 IMU 的积分漂移，实现互补优势。
+
+\section{视觉测量模型与预处理}
+
+在 VIO 系统中，相机作为核心视觉传感器，其成像模型与畸变校正方式直接决定了视觉观测残差的构建形式。
+
+\subsection{相机投影模型}
+
+本研究采用经典的针孔相机模型（Pinhole Camera Model）。设三维空间点在相机坐标系下的坐标为 $\mathbf{P}_c = [X, Y, Z]^\top$，其在归一化平面上的投影点为 $\mathbf{p}_n = [u_n, v_n]^\top$，对应关系为：
+\begin{equation}
+    u_n = \frac{X}{Z}, \quad v_n = \frac{Y}{Z}
+\end{equation}
+实际投影至像素平面的坐标 $\mathbf{p}_{uv} = [u, v]^\top$ 与内参矩阵 $\mathbf{K}$ 的关系为：
+\begin{equation}
+    \begin{bmatrix} u \\ v \\ 1 \end{bmatrix} = \mathbf{K} \begin{bmatrix} u_n \\ v_n \\ 1 \end{bmatrix} = \begin{bmatrix} f_x & 0 & c_x \\ 0 & f_y & c_y \\ 0 & 0 & 1 \end{bmatrix} \begin{bmatrix} u_n \\ v_n \\ 1 \end{bmatrix}
+\end{equation}
+展开可得：
+\begin{equation}
+    u = f_x u_n + c_x, \quad v = f_y v_n + c_y
+\end{equation}
+其中 $f_x, f_y$ 为焦距，$c_x, c_y$ 为主点坐标（Optical center）。
+
+由于透镜制造工艺限制，原始图像往往会产生非线性的几何畸变。本系统主要考虑了径向畸变（Radial Distortion）和切向畸变（Tangential Distortion），采用常用的五参数模型 $(k_1, k_2, p_1, p_2, k_3)$ 对去畸变后的坐标进行修正。此外，针对硬件加速器对双目观测的并行处理需求，系统在前端对双目图像进行了立体校正（Stereo Rectification），使得左右目图像的特征点搜索可限制在同一水平行（极线）上，极大地降低了双目匹配的搜索空间。
+
+\subsection{视觉前端处理}
+
+视觉前端的主要任务是从图像序列中提取特征并建立帧间的数据关联。本系统采用特征块（Patch）提取与光流追踪相结合的策略。前端流程通常包括：
+\begin{enumerate}
+    \item \textbf{特征提取}：在图像的关键区域提取具有显著梯度的角点特征（如 FAST 角点）。
+    \item \textbf{特征追踪}：利用金字塔 Lucas-Kanade（KLT）光流法追踪已知特征点在连续帧间的投影位置。对于双目观测，同时在右目对应极线上进行特征点的对极搜索与匹配。
+    \item \textbf{关键帧选定}：根据相邻帧间的平均运动距离或追踪特征点的有效数量下降情况，选定当前帧是否为关键帧，并触发后端优化逻辑。
+\end{enumerate}
+
+\section{视觉惯性状态估计与优化理论}
+
+\subsection{IMU 预积分基础}
+
+IMU 传感器以极高的频率（通常为 100~Hz 到 1000~Hz）输出载体的角速度和加速度。由于 SLAM 的后端优化频率（如 20~Hz）远低于 IMU 的输出频率，直接将高频的原始 IMU 数据作为状态进行约束会导致计算维数爆炸。IMU 预积分（IMU Pre-integration）技术~\cite{forster2016onmanifold}的引入解决了这一问题。其核心思想是在载体坐标系下对两关键帧之间的所有 IMU 测量值进行局部积分，构建出与起始状态无关的相对运动约束。
+
+\subsection{状态向量定义}
+
+本文在后端优化逻辑中，定义了载体在滑动窗口内的状态向量。设第 $k$ 时刻载体的全状态向量变量 $\mathbf{x}_k$ 为：
+\begin{equation}
+    \mathbf{x}_k = [\mathbf{R}_k, \mathbf{p}_k, \mathbf{v}_k, \mathbf{b}_{a,k}, \mathbf{b}_{g,k}]^\top
+\end{equation}
+其中，各分量的含义如下：
+\begin{itemize}
+    \item $\mathbf{R}_k \in SO(3)$：载体相对于世界坐标系的旋转矩阵；
+    \item $\mathbf{p}_k \in \mathbb{R}^3$：载体在世界坐标系下的平移位置；
+    \item $\mathbf{v}_k \in \mathbb{R}^3$：载体在世界坐标系下的平移速度；
+    \item $\mathbf{b}_{a,k}, \mathbf{b}_{g,k} \in \mathbb{R}^3$：分别为加速度计和陀螺仪的零偏误差（Bias）。
+\end{itemize}
+
+\subsection{非线性最小二乘问题构建}
+
+在视觉 SLAM 中，后端优化通常被建模为一个非线性最小二乘（Non-linear Least Squares, NLS）问题。优化的目标是寻找最优状态 $\mathbf{x}^*$，使得代价函数最小化：
+\begin{equation}
+    \mathbf{x}^* = \arg \min_{\mathbf{x}} \left( \|\mathbf{r}_p - \mathbf{H}_p \mathbf{x}\|^2 + \sum_{k,i} \rho(\|\mathbf{r}_{v}(\mathbf{z}_{k,i}, \mathbf{x})\|^2_{\mathbf{\Omega}_{v}}) + \sum_{k} \|\mathbf{r}_{i}(\mathbf{x}_k, \mathbf{x}_{k+1})\|^2_{\mathbf{\Omega}_{i}} \right)
+\end{equation}
+式中各项含义如下：
+\begin{itemize}
+    \item $\mathbf{r}_p$ 为先验残差项（Prior residual），$\mathbf{H}_p$ 为对应的先验信息矩阵，用于引入边缘化后的历史约束；
+    \item $\mathbf{r}_{v}(\mathbf{z}_{k,i}, \mathbf{x})$ 为第 $k$ 帧第 $i$ 个特征的视觉重投影残差，$\mathbf{z}_{k,i}$ 为观测量，$\mathbf{\Omega}_{v}$ 为视觉观测的信息矩阵（权重）；
+    \item $\rho(\cdot)$ 为鲁棒核函数，用于降低外点对优化结果的影响；
+    \item $\mathbf{r}_{i}(\mathbf{x}_k, \mathbf{x}_{k+1})$ 为 IMU 预积分残差，$\mathbf{\Omega}_{i}$ 为 IMU 约束的信息矩阵。
+\end{itemize}
+该问题通常采用 Gauss-Newton 或 Levenberg-Marquardt 等迭代算法进行求解。
+
+\subsection{滑动窗口与边缘化机制}
+
+为了平衡计算量与估计精度，现代 VIO 常采用滑动窗口（Sliding Window）机制。该机制仅在优化器中保留最近一段时空范围内的关键帧和路标点。当新的关键帧加入窗口时，由于内存和算力限制，必须移除（边缘化）旧的关键帧。边缘化（Marginalization）的过程利用 Schur 补理论，将待移除状态所携带的约束信息转化为剩余状态的先验信息（Prior Information）。
+
+\subsection{Hessian 矩阵的稀疏性分析}
+
+在基于滑动窗口的 VIO 系统中，Hessian 矩阵 $\mathbf{H}$ 具有极强的稀疏性。这种稀疏性来源主要包括：
+\begin{enumerate}
+    \item \textbf{观测局域性}：在短时间的滑动窗口内，路标点仅能被少数几个位姿检测到，导致 $\mathbf{H}_{pm}$ 块大部分为零。
+    \item \textbf{图像遮挡与丢失}：在动态场景下，特征点在某些时刻不可见。
+\end{enumerate}
+本文引入了稀疏观测位图（SOB）的概念，通过硬件逻辑识别并跳过无效计算周期。
+
+\section{舒尔补数学原理}
+
+在 VIO 滑动窗口优化中，线性化方程组可以表示为分块矩阵形式：
+\begin{equation}
+    \begin{bmatrix}
+        \mathbf{H}_{pp} & \mathbf{H}_{pm} \\
+        \mathbf{H}_{pm}^{\top} & \mathbf{H}_{mm}
+    \end{bmatrix}
+    \begin{bmatrix}
+        \Delta\mathbf{X}_p \\
+        \Delta\mathbf{X}_m
+    \end{bmatrix}
+    =
+    \begin{bmatrix}
+        \mathbf{b}_p \\
+        \mathbf{b}_m
+    \end{bmatrix}
+\end{equation}
+其中 $\mathbf{H}_{mm}$ 是路标点相关的矩阵块，由于路标点之间通常被认为是不相关的，$\mathbf{H}_{mm}$ 呈现出块对角（Block Diagonal）的特性。
+
+通过 Schur 补消元，我们可以先独立求解位姿增量 $\Delta\mathbf{X}_p$：
+\begin{equation}
+    \mathbf{S} = \mathbf{H}_{pp} - \mathbf{H}_{pm}\mathbf{H}_{mm}^{-1}\mathbf{H}_{pm}^{\top}
+\end{equation}
+\begin{equation}
+    \mathbf{S} \Delta\mathbf{X}_p = \mathbf{b}_p - \mathbf{H}_{pm}\mathbf{H}_{mm}^{-1}\mathbf{b}_m
+\end{equation}
+其中 $\mathbf{S}$ 称为 Schur 补矩阵。这一步消元将位姿优化与路标点优化解耦，是 SLAM 高端优化的核心。
+
+\section{FPGA 开发平台与软硬协同流程}
+
+本系统部署于赛灵思（Xilinx）的 Zynq 系列 SoC 平台。该平台通过高性能的 AXI 总线将处理器系统（PS）与可编程逻辑（PL）紧密结合。在开发流程上，采用 Vivado 进行硬件架构设计，利用 Vitis 进行嵌入式软件开发，通过 DMA 引擎实现 PS 与 PL 之间的高吞吐率数据交互。
