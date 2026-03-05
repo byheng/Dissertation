@@ -1,0 +1,70 @@
+\usetikzlibrary{shadows, positioning, fit, shapes}
+\begin{tikzpicture}[
+    node distance=1.5cm,
+    font=\small\rmfamily, % 英文 Times New Roman (rmfamily)
+    % 样式定义
+    block/.style={rectangle, draw=black!70, fill=white, thick, minimum width=2.5cm, minimum height=1.0cm, align=center, drop shadow},
+    container/.style={rectangle, draw=blue!50!black, dashed, thick, fill=blue!5, inner sep=0.3cm, rounded corners},
+    rosnode/.style={rectangle, draw=green!40!black, fill=green!10, thick, minimum width=2.2cm, minimum height=0.8cm, align=center, rounded corners=3pt},
+    hwblock/.style={rectangle, draw=red!40!black, fill=red!10, thick, minimum width=4.5cm, minimum height=1.0cm, align=center},
+    arrow/.style={->, >=stealth, thick, draw=black!70},
+    line/.style={-, thick, draw=black!70},
+    % 字体设置 (在导言区需配合 xeCJK 也就是 ctex 宏包使用)
+    every node/.append style={font=\rmfamily}
+]
+
+% --- 左侧：开发环境 ---
+\node[block, fill=gray!10] (host) {\textbf{Host PC (x86)}\\ 开发主机};
+\node[block, below=0.5cm of host, minimum height=0.8cm] (qemu) {QEMU 仿真环境\\ (ARM64 Simulation)};
+\node[block, below=0.5cm of qemu, minimum height=0.8cm] (cross) {交叉编译工具链\\ (Cross Complier)};
+
+% 外框：开发环境
+\node[draw=gray, thick, fit=(host) (qemu) (cross), inner sep=0.4cm, label={[anchor=south, yshift=-1.0cm]below:\textbf{开发与仿真环境}}] (dev_env) {};
+
+% --- 右侧：Zynq 嵌入式系统 ---
+
+% 1. 顶层：ROS 应用层 (SchurVINS) - 先画中间的 backend
+\node[rosnode, right=6cm of host] (backend) {\textbf{后端优化节点}\\ (Backend Optimization)};
+% 基于 backend 定位 others
+\node[rosnode, left=1cm of backend] (frontend) {\textbf{前端追踪节点}\\ (Feature Tracking)};
+\node[rosnode, left=1cm of frontend] (driver) {\textbf{传感器驱动}\\ (Sensor Driver)};
+
+% 2. 容器层 Docker (包围 ROS 节点)
+\node[container, fit=(driver) (frontend) (backend), label={[anchor=north west, xshift=5pt, yshift=-5pt, text=blue!50!black]north west:\textbf{Docker Container (Ubuntu 20.04)} / ROS1 Noetic}] (docker) {};
+
+% 3. 系统层 PYNQ (在 Docker 下方)
+\node[block, below=1.5cm of docker, minimum width=11cm, fill=orange!10] (pynq) {\textbf{PYNQ 3.0.1 Linux OS}\\ (基于 Ubuntu 20.04 LTS)};
+
+% 4. 硬件层 Hardware (在 PYNQ 下方)
+% 使用相对定位确保对齐
+\node[hwblock, below=1.0cm of pynq, xshift=-2.8cm] (ps_hw) {\textbf{PS 端硬件资源}\\ (4$\times$ ARM Cortex-A53)};
+\node[hwblock, right=0.6cm of ps_hw, fill=yellow!10] (pl_hw) {\textbf{PL 端硬件逻辑}\\ (FPGA Schur Kernel)};
+
+% 外框：Zynq 平台 (包围 Docker, PYNQ, Hardware)
+\node[draw=black, thick, rounded corners, fit=(docker) (pynq) (ps_hw) (pl_hw), inner sep=0.5cm, label={[anchor=north]north:\textbf{Zynq MPSoC 嵌入式运行环境}}] (zynq_plat) {};
+
+% --- 连接关系 ---
+
+% Host -> PYNQ (部署)
+% 使用 coordinate 避免箭头重叠
+\coordinate (dev_right) at (dev_env.east);
+\coordinate (zynq_left) at (zynq_plat.west);
+% 计算中点高度
+\draw[arrow, dashed] (dev_right) -- node[above, font=\footnotesize, align=center] {以太网/JTAG 部署\\ (Ethernet/JTAG)} (dev_right -| zynq_left);
+
+% ROS -> FPGA (加速调用)
+% 绕过 PYNQ 层直接连接
+\draw[arrow, line width=1.5pt, red!70!black] (backend.south) -- (backend.south |- pynq.north);
+\draw[arrow, line width=1.5pt, red!70!black] (backend.south |- pynq.south) -- node[right, font=\footnotesize, text=red] {AXI-DMA 加速调用} (backend.south |- pl_hw.north);
+% 在 PYNQ 内部画一条虚线表示透传
+\draw[dashed, red!70!black, thick] (backend.south |- pynq.north) -- (backend.south |- pynq.south);
+
+
+% Driver -> Frontend -> Backend (ROS Topic)
+\draw[arrow] (driver) -- node[above, font=\footnotesize] {Image/IMU} (frontend);
+\draw[arrow] (frontend) -- node[above, font=\footnotesize] {Features} (backend);
+
+% PYNQ -> Hardware (控制/数据)
+\draw[<->, thick] (pynq.south -| ps_hw) -- (ps_hw.north);
+
+\end{tikzpicture}

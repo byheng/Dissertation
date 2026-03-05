@@ -4,7 +4,7 @@
 
 \begin{tikzpicture}[
     every node/.append style={font=\rmfamily},  % 确保使用衬线字体（Times/宋体）
-    state/.style={draw, thick, rounded corners=5pt, minimum width=2.5cm, minimum height=0.9cm, align=center, font=\footnotesize},
+    state/.style={draw, thick, rounded corners=5pt, minimum width=2.6cm, minimum height=0.9cm, align=center, font=\footnotesize},
     state_idle/.style={state, fill=gray!20},
     state_load/.style={state, fill=blue!15},
     state_phase2/.style={state, fill=green!15},
@@ -19,9 +19,9 @@
 % ========== 状态节点 ==========
 \node[state_idle] (idle) at (0, 0) {IDLE};
 
-\node[state_load] (load_param) at (0, -1.8) {LOAD\_PARAMS\\读取state\_param};
+\node[state_load] (load_param) at (0, -1.8) {LOAD\_PARAMS\\读取参数};
 
-\node[state_load] (load_input) at (0, -3.6) {LOAD\_INPUTS\\并行读取SOB/pts/uv};
+\node[state_load] (load_input) at (0, -3.6) {LOAD\_INPUTS\\读取SOB/观测/路标};
 
 \node[state_phase2] (p2_init) at (0, -5.4) {PHASE2\_INIT\\初始化循环计数器};
 
@@ -29,7 +29,7 @@
 \node[loop_box, minimum width=6.5cm, minimum height=4.2cm] (p2_loop_box) at (4.5, -7.8) {};
 \node[anchor=north, font=\footnotesize\bfseries] at (4.5, -5.8) {PHASE2\_LOOP};
 
-\node[state_phase2] (p2_check) at (4.5, -6.8) {检查 SOB 编码\\(state, cam)有效?};
+\node[state_phase2] (p2_check) at (4.5, -6.8) {SOB 判定\\(state, cam)有效?};
 \node[state_phase2] (coord_trans) at (2.5, -8.2) {COORD\\TRANSFORM};
 \node[state_phase2] (residual) at (4.5, -8.2) {RESIDUAL\\CALC};
 \node[state_phase2] (jacobian) at (6.5, -8.2) {JACOBIAN\\CALC};
@@ -41,9 +41,9 @@
 \node[loop_box, minimum width=6.5cm, minimum height=3.5cm] (p3_loop_box) at (4.5, -12.8) {};
 \node[anchor=north, font=\footnotesize\bfseries] at (4.5, -10.9) {PHASE3\_LOOP};
 
-\node[state_phase3] (v_inv) at (2.5, -12) {$\mathbf{V}^{-1}$计算\\(j==0时)};
-\node[state_phase3] (wvinv) at (6.5, -12) {$\mathbf{W}\mathbf{V}^{-1}$\\乘法};
-\node[state_phase3] (schur_update) at (4.5, -13.5) {Schur更新\\$\mathbf{A}, \mathbf{b}$};
+\node[state_phase3] (v_inv) at (2.5, -12) {$\mathbf{H}_{mm}^{-1}$计算\\(j==0)};
+\node[state_phase3] (wvinv) at (6.5, -12) {$\mathbf{H}_{pm}\mathbf{H}_{mm}^{-1}$\\计算};
+\node[state_phase3] (schur_update) at (4.5, -13.5) {Schur 更新\\$\mathbf{H}_{pp}, \mathbf{b}_p$};
 
 \node[state_write] (write_out) at (0, -15) {WRITE\_OUTPUT\\DMA写回结果};
 

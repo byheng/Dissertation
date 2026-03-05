@@ -1,0 +1,17 @@
+\begin{tikzpicture}[node distance=14mm,>=Stealth,rounded corners,thick]
+    \tikzstyle{block}=[draw,minimum width=22mm,minimum height=8mm,align=center]
+    \tikzstyle{data}=[draw,minimum width=18mm,minimum height=8mm,align=center]
+
+    \node[block] (sensor) {传感器\\数据获取};
+    \node[block, right=of sensor] (frontend) {前端\\跟踪与匹配};
+    \node[block, right=of frontend] (backend) {后端\\位姿优化};
+    \node[block, right=of backend] (loop) {回环\\检测};
+    \node[block, below=of backend] (mapping) {建图\\与更新};
+
+    \draw[->] (sensor) -- (frontend);
+    \draw[->] (frontend) -- (backend);
+    \draw[->] (backend) -- (mapping);
+    \draw[->] (loop) -- (backend);
+    \draw[->] (backend) -- (loop);
+    \draw[->] (mapping) -| (frontend);
+\end{tikzpicture}

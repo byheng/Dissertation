@@ -1,0 +1,149 @@
+% Hessian 矩阵稀疏块结构示意图
+% 使用方法: \input{figures/Hessian_structure_tikz.tex}
+% 字体: 中文使用宋体（继承文档设置），英文使用 Times New Roman（newtxtext）
+%
+% 根据论文描述:
+% - H_pp: 位姿-位姿块, 6x6 子块, 主要在对角线及附近非零
+% - H_mm: 路标-路标块, 3x3 子块, 块对角矩阵
+% - H_pm: 位姿-路标块, 6x3 子块, 稀疏 (反映观测关系)
+
+\begin{tikzpicture}[
+    scale=0.8,
+    every node/.append style={font=\rmfamily},  % 确保使用衬线字体（Times/宋体）
+    % 位姿块 6x6 - 正方形
+    block_pp/.style={draw, thick, minimum width=0.8cm, minimum height=0.8cm},
+    % 路标块 3x3 - 小正方形
+    block_mm/.style={draw, thick, minimum width=0.45cm, minimum height=0.45cm},
+    % 交叉块 6x3 - 高矩形 (位姿行 x 路标列)
+    block_pm/.style={draw, thick, minimum width=0.45cm, minimum height=0.8cm},
+    % 交叉块转置 3x6 - 宽矩形 (路标行 x 位姿列)
+    block_pm_t/.style={draw, thick, minimum width=0.8cm, minimum height=0.45cm},
+    block_filled/.style={fill=#1},
+    label_style/.style={font=\footnotesize},
+    brace_style/.style={decorate, decoration={brace, amplitude=5pt, raise=2pt}},
+]
+
+% 定义颜色
+\definecolor{hpp_color}{RGB}{65, 105, 225}    % 蓝色 - H_pp
+\definecolor{hmm_color}{RGB}{50, 205, 50}     % 绿色 - H_mm
+\definecolor{hpm_color}{RGB}{255, 165, 0}     % 橙色 - H_pm
+\definecolor{zero_color}{RGB}{245, 245, 245}  % 浅灰 - 零块
+
+% ========== H_pp 区域 (左上角 4x4 位姿块) ==========
+\node[label_style, anchor=south] at (2, 5.2) {$\mathbf{H}_{pp}$ (位姿-位姿)};
+
+% 4x4 的 6x6 子块矩阵
+\foreach \i in {0,...,3} {
+    \foreach \j in {0,...,3} {
+        \ifnum\i=\j
+            % 对角线块 - 深蓝色填充
+            \node[block_pp, block_filled=hpp_color!80] at (\j*1.0+0.5, 3.5-\i*1.0) {};
+        \else
+            % 非对角块 - 浅蓝色
+            \node[block_pp, block_filled=hpp_color!10] at (\j*1.0+0.5, 3.5-\i*1.0) {};
+        \fi
+    }
+}
+
+% H_pp 边框
+\draw[very thick, hpp_color] (-0.15, -0.15) rectangle (4.15, 4.15);
+
+% ========== H_pm 区域 (右上角 4x8 位姿-路标块) ==========
+\node[label_style, anchor=south] at (6.8, 5.2) {$\mathbf{H}_{pm}$ (位姿-路标)};
+
+% 定义观测模式 (1=有观测, 0=无观测)
+% 行: 位姿 0-3, 列: 路标 1-8
+\foreach \i/\obs in {0/{1,1,0,0,1,0,0,1}, 1/{1,1,1,0,0,1,0,1}, 2/{0,1,1,1,0,1,1,1}, 3/{0,0,0,1,1,1,1,1}} {
+    \foreach \j in {0,...,7} {
+        \pgfmathparse{{\obs}[\j]}
+        \ifnum\pgfmathresult=1
+            \node[block_pm, block_filled=hpm_color!70] at (4.7+\j*0.55, 3.5-\i*1.0) {};
+        \else
+            \node[block_pm, block_filled=zero_color] at (4.7+\j*0.55, 3.5-\i*1.0) {};
+        \fi
+    }
+}
+
+% H_pm 边框
+\draw[very thick, hpm_color] (4.35, -0.15) rectangle (8.9, 4.15);
+
+% ========== H_pm^T 区域 (左下角 8x4) ==========
+% \node[label_style, anchor=north] at (-0.7, -5.5) {$\mathbf{H}_{pm}^\top$};
+
+% 转置的观测模式
+\foreach \j/\obs in {0/{1,1,0,0,1,0,0,1}, 1/{1,1,1,0,0,1,0,1}, 2/{0,1,1,1,0,1,1,1}, 3/{0,0,0,1,1,1,1,1}} {
+    \foreach \i in {0,...,7} {
+        \pgfmathparse{{\obs}[\i]}
+        \ifnum\pgfmathresult=1
+            \node[block_pm_t, block_filled=hpm_color!70] at (\j*1.0+0.5, -0.7-\i*0.55) {};
+        \else
+            \node[block_pm_t, block_filled=zero_color] at (\j*1.0+0.5, -0.7-\i*0.55) {};
+        \fi
+    }
+}
+
+% H_pm^T 边框
+\draw[very thick, hpm_color] (-0.15, -0.35) rectangle (4.15, -4.9);
+
+% ========== H_mm 区域 (右下角 8x8 块对角) ==========
+\node[label_style, anchor=south] at (6.6, -5.8) {$\mathbf{H}_{mm}$ (路标-路标)};
+
+% 块对角矩阵 - 只有对角线非零
+\foreach \i in {0,...,7} {
+    \foreach \j in {0,...,7} {
+        \ifnum\i=\j
+            \node[block_mm, block_filled=hmm_color!70] at (4.7+\j*0.55, -0.7-\i*0.55) {};
+        \else
+            \node[block_mm, block_filled=zero_color] at (4.7+\j*0.55, -0.7-\i*0.55) {};
+        \fi
+    }
+}
+
+% H_mm 边框
+\draw[very thick, hmm_color] (4.35, -0.35) rectangle (8.9, -4.9);
+
+% ========== 标注尺寸 ==========
+% 位姿维度标注
+\draw[brace_style] (-0.05, 4.3) -- (4.05, 4.3) node[midway, above=8pt, font=\footnotesize] {$6N$ (位姿)};
+\draw[brace_style] (4.2, 4.3) -- (9.0, 4.3) node[midway, above=8pt, font=\footnotesize] {$3M$ (路标)};
+
+% 垂直标注
+\draw[brace_style] (-0.3, -0.15) -- (-0.3, 4.15) node[midway, left=8pt, font=\footnotesize, rotate=90, anchor=south] {$6N$};
+\draw[brace_style] (-0.3, -4.9) -- (-0.3, -0.35) node[midway, left=8pt, font=\footnotesize, rotate=90, anchor=south] {$3M$};
+
+% ========== 子块尺寸说明 (图例) ==========
+% \node[font=\scriptsize\bfseries, anchor=west] at (0, -6.0) {子块尺寸:};
+
+% 位姿子块 6x6
+\node[block_pp, block_filled=hpp_color!80, minimum width=0.6cm, minimum height=0.6cm] at (0.8, -6.8) {};
+\node[font=\tiny, anchor=west] at (1.2, -6.8) {$6\times6$ 位姿块};
+
+% 路标子块 3x3
+\node[block_mm, block_filled=hmm_color!70, minimum width=0.3cm, minimum height=0.3cm] at (3.5, -6.8) {};
+\node[font=\tiny, anchor=west] at (3.8, -6.8) {$3\times3$ 路标块};
+
+% 交叉子块 6x3
+\node[block_pm, block_filled=hpm_color!70, minimum width=0.3cm, minimum height=0.6cm] at (6.0, -6.8) {};
+\node[font=\tiny, anchor=west] at (6.3, -6.8) {$6\times3$ 交叉块};
+
+% 零块
+\node[block_mm, block_filled=zero_color, minimum width=0.4cm, minimum height=0.4cm] at (8.5, -6.8) {};
+\node[font=\tiny, anchor=west] at (8.8, -6.8) {零块};
+
+% ========== 稀疏性说明 ==========
+% \node[align=left, font=\scriptsize, anchor=north west] at (9.5, 4) {
+% \textbf{稀疏特性:}\\[3pt]
+% $\bullet$ $\mathbf{H}_{pp}$: 对角及\\
+% \quad 相邻块非零\\[2pt]
+% $\bullet$ $\mathbf{H}_{mm}$: 块对角\\
+% \quad (路标独立)\\[2pt]
+% $\bullet$ $\mathbf{H}_{pm}$: 高度稀疏\\
+% \quad (观测局部性)
+% };
+
+% ========== 矩阵分块公式 ==========
+% \node[font=\small, anchor=north] at (4.5, -7.8) {
+% $\mathbf{H} = \begin{bmatrix} \mathbf{H}_{pp} & \mathbf{H}_{pm} \\ \mathbf{H}_{pm}^\top & \mathbf{H}_{mm} \end{bmatrix}$
+% };
+
+\end{tikzpicture}
