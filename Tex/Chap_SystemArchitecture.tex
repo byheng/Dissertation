@@ -43,9 +43,16 @@ FPGA 逻辑端作为协处理器与运算加速核心，利用其大规模并行
 
 为了有效支撑上述的 PS/PL 异构协同计算架构，必须设计一套与算法流程高度匹配的数据流调度策略以及高效的互联通信协议。
 
+\begin{figure}[htbp]
+    \centering
+    \resizebox{0.95\linewidth}{!}{\input{Img/BA_accelerator_arch.tex}}
+    \bicaption{Schur Kernel 硬件加速器架构}{Architecture of Schur Kernel Hardware Accelerator}
+    \label{fig:ba_core_arch_sys}
+\end{figure}
+
 \subsection{系统级数据交互分析}
 
-一次完整的 SLAM 后端优化迭代中的软硬件数据流转可总结为三个主要阶段，具体交互逻辑如图~\ref{fig:ba_core_arch}（详见硬件架构设计部分的配图）所示：
+一次完整的 SLAM 后端优化迭代中的软硬件数据流转可总结为三个主要阶段，具体交互逻辑如图~\ref{fig:ba_core_arch_sys}（详见硬件架构设计部分的配图）所示：
 
 \begin{enumerate}
     \item \textbf{配置与输入搬运阶段（PS $\rightarrow$ PL）}：

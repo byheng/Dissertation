@@ -13,6 +13,12 @@
 \subsubsection{评估平台 (ZCU106)}
 
 离线性能评估与资源统计在 ZCU106 开发板上完成（如图~\ref{fig:hetero_platform} 所示）。该平台集成四核 ARM Cortex-A53 处理器与大规模可编程逻辑资源，能够稳定支撑后端加速器的软硬协同验证。ZCU106 平台的主要硬件配置如下：
+\begin{figure}[h!t]
+\centering
+\includegraphics[width=0.9\linewidth]{Img/zcu-106.jpg}
+\bicaption{评估平台 ZCU106 实物图}{Physical view of the ZCU106 evaluation platform}
+\label{fig:hetero_platform}
+\end{figure}
 \begin{itemize}
     \item 处理器系统（PS）：四核 ARM Cortex-A53，最高频率 1.2~GHz，配备 4~GB DDR4 内存。
     \item 可编程逻辑（PL）：约 1143K 逻辑单元（Logic Cells）与 2520 个 DSP 计算切片。
@@ -21,6 +27,13 @@
 \subsubsection{应用平台 (XCZU19EG)}
 
 真实场景测试部分使用集成式异构计算板卡（如图~\ref{fig:application_platform} 所示），其核心器件为 XCZU19EG。该平台在 PS 端同样采用 Cortex-A53 架构，PL 端提供更充足的逻辑单元与片上存储资源。为了满足真实场景下高动态定位的需求，板卡集成了高性能的视觉与惯性传感器：
+
+\begin{figure}[h!t]
+\centering
+\includegraphics[width=0.9\linewidth]{Img/application_platform.png}
+\bicaption{异构计算应用平台 (XCZU19EG) 实物图}{Physical view of the XCZU19EG application platform}
+\label{fig:application_platform}
+\end{figure}
 
 \begin{itemize}
     \item \textbf{视觉传感器}：采用安森美（ON Semiconductor）AR0144AT 图像传感器。该传感器为 1/4 英寸 1.0 MP CMOS，分辨率为 $1280 \times 800$。其核心特性是采用全局快门（Global Shutter）像素设计，专为捕捉高速运动场景优化，能够产生清晰、低噪声的图像，有效避免卷帘快门带来的几何畸变，确保前端特征追踪的精度。双目相机模组的物理基线长度（Baseline）设置为 100~mm，以平衡深度估计的精度与测量范围。
@@ -31,27 +44,13 @@
 
 两类平台均采用统一的软硬划分方式，保证实验结果的可比性。
 
-\begin{figure}[h!t]
-\centering
-\includegraphics[width=0.9\linewidth]{Img/application_platform.png}
-\bicaption{异构计算应用平台 (XCZU19EG) 实物图}{Physical view of the XCZU19EG application platform}
-\label{fig:application_platform}
-\end{figure}
-
-\begin{figure}[h!t]
-\centering
-\includegraphics[width=0.9\linewidth]{Img/zcu-106.jpg}
-\bicaption{评估平台 ZCU106 实物图}{Physical view of the ZCU106 evaluation platform}
-\label{fig:hetero_platform}
-\end{figure}
-
 \subsection{软件系统架构}
 
 为了提高开发效率并实现算法的灵活部署，软件环境基于 PYNQ 3.0.1 框架构建。PYNQ 利用 Python 的生产力优势与 FPGA 的硬件性能，通过 Overlay 机制实现比特流的动态加载与 API 封装。系统的软件栈架构设计如图~\ref{fig:software_arch} 所示，具体包括：
 
 \begin{figure}[h!t]
     \centering
-    \resizebox{0.95\linewidth}{!}{\input{Img/software_arch_tikz.tex}}
+    \includegraphics[width=0.95\linewidth]{Img/software_arch_system.png}
     \bicaption{基于 PYNQ 与 Docker 的软件系统架构}{Software system architecture based on PYNQ and Docker}
     \label{fig:software_arch}
 \end{figure}
@@ -257,14 +256,14 @@ FPGA (硬件加速) & 6.53 & \textbf{6.80} & \textbf{6.95} \\
 \label{eq:sparsity_ratio}
 \end{equation}
 
-图~\ref{fig:sob_computation} 展示了 SOB 编码在不同稀疏率下的计算量优化效果。随着稀疏率增大，观测逐渐密集，优化带来的相对收益逐步降低，但在常见稀疏区间 40\%--60\% 仍保持显著优势。这一区间的观测分布既体现了稀疏性，又保留了足够数量的有效观测，使得跳零计算与有效负载之间取得更好的平衡。在典型场景（150 个路标点、600 个有效观测、稀疏率 50\%）下，Hessian 构建阶段的迭代次数从 1{,}200 次降至 600 次，节省 50\% 的计算量；舒尔消元阶段的 $\mathbf{H}_{pm} \times \mathbf{H}_{mm}^{-1}$ 矩阵乘法次数从 600 次降至 433 次，$\mathbf{H}_{pp}$ 矩阵更新次数从 2{,}400 次降至 1{,}401 次，综合节省约 40\% 的浮点运算。由于流水线中乘加与累加路径占比最高，该收益能够直接转化为后端时延的降低与吞吐提升。
-
 \begin{figure}[h!t]
-\centering
-\input{Img/sob_computation_chart.tex}
-\bicaption{SOB 编码计算量优化效果}{Computation reduction by SOB encoding}
-\label{fig:sob_computation}
+    \centering
+    \input{Img/sob_computation_chart.tex}
+    \bicaption{SOB 编码计算量优化效果}{Computation reduction by SOB encoding}
+    \label{fig:sob_computation}
 \end{figure}
+
+图~\ref{fig:sob_computation} 展示了 SOB 编码在不同稀疏率下的计算量优化效果。随着稀疏率增大，观测逐渐密集，优化带来的相对收益逐步降低，但在常见稀疏区间 40\%--60\% 仍保持显著优势。这一区间的观测分布既体现了稀疏性，又保留了足够数量的有效观测，使得跳零计算与有效负载之间取得更好的平衡。在典型场景（150 个路标点、600 个有效观测、稀疏率 50\%）下，Hessian 构建阶段的迭代次数从 1{,}200 次降至 600 次，节省 50\% 的计算量；舒尔消元阶段的 $\mathbf{H}_{pm} \times \mathbf{H}_{mm}^{-1}$ 矩阵乘法次数从 600 次降至 433 次，$\mathbf{H}_{pp}$ 矩阵更新次数从 2{,}400 次降至 1{,}401 次，综合节省约 40\% 的浮点运算。由于流水线中乘加与累加路径占比最高，该收益能够直接转化为后端时延的降低与吞吐提升。
 
 SOB 编码对交叉项矩阵 $\mathbf{H}_{pm}$ 的存储空间和 DMA 传输量也有显著优化。由于每个有效的 $6 \times 3$ 子块占用 144 字节（18 个 FP64），跳过无效观测可直接减少存储和传输开销。表~\ref{tab:sob_summary} 汇总了典型场景下 SOB 编码的综合优化效果。通过协同优化计算、存储和传输三个维度，系统总浮点运算量从 1.687M 降至 924.3K，降低约 45\%，显著提升了硬件加速器的整体效率。
 
