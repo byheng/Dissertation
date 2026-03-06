@@ -68,3 +68,107 @@ The dissertation focuses on an FPGA-based hardware/software co-designed SLAM bac
   - Schur equation: $\mathbf{S} = \mathbf{H}_{pp} - \mathbf{H}_{pm}\mathbf{H}_{mm}^{-1}\mathbf{H}_{pm}^{\mathrm{T}}$.
   - Gradient update: $\mathbf{b}'_p = \mathbf{b}_p - \mathbf{H}_{pm}\mathbf{H}_{mm}^{-1}\mathbf{b}_m$.
   - All matrices and vectors must use `\mathbf{}`.
+
+## Bibliography Management Tools
+
+The project includes automated tools in the `scripts/` directory for fetching BibTeX entries from academic databases.
+
+### Quick Usage
+
+**Recommended: CrossRef Tool (No VPN Required)**
+
+```bash
+cd scripts
+
+# Query by paper title
+python3 fetch_bibtex_crossref.py "ORB-SLAM: a Versatile and Accurate Monocular SLAM System"
+
+# Query by DOI (fastest and most accurate)
+python3 fetch_bibtex_crossref.py --doi "10.1109/TRO.2015.2463671"
+
+# Save to file
+python3 fetch_bibtex_crossref.py "Paper Title" -o output.bib
+
+# Append directly to ref.bib
+python3 fetch_bibtex_crossref.py "Paper Title" >> ../Biblio/ref.bib
+```
+
+**Alternative: Google Scholar Tool (for arXiv preprints)**
+
+```bash
+# Basic usage
+python3 fetch_bibtex.py "Paper Title"
+
+# With proxy (if blocked)
+python3 fetch_bibtex.py --proxy "Paper Title"
+```
+
+### Tool Selection Guide
+
+- **Use CrossRef** (`fetch_bibtex_crossref.py`) for:
+  - Journal articles (IEEE TRO, IJCV, etc.)
+  - Conference papers (CVPR, ICCV, ICRA, etc.)
+  - Papers with DOI
+  - **Advantages**: Fast, stable, no anti-bot restrictions, no VPN needed
+
+- **Use Google Scholar** (`fetch_bibtex.py`) for:
+  - arXiv preprints
+  - Technical reports without DOI
+  - Papers not indexed in CrossRef
+  - **Note**: Requires VPN for China users, may encounter rate limiting
+
+### Tested Papers
+
+The following papers have been successfully tested with CrossRef:
+- ORB-SLAM (IEEE TRO 2015)
+- VINS-Mono (IEEE TRO 2018)
+- DTAM (ICCV 2011)
+
+For detailed documentation, see `scripts/README.md`.
+
+## Bibliography and Citation Standards (CRITICAL)
+
+**STRICTLY ENFORCE THESE RULES FOR ALL REFERENCES:**
+
+1. **Zero Tolerance for Fabricated References**:
+   - **NEVER** create, invent, or fabricate any bibliography entries.
+   - Every single reference must be verifiable on Google Scholar or other academic databases.
+   - If you cannot verify a reference exists, DO NOT include it in the paper.
+
+2. **Verification Requirement**:
+   - Before adding or citing any reference, you MUST verify its existence through:
+     - Google Scholar search (scholar.google.com)
+     - PubMed, IEEE Xplore, ACM Digital Library, or arXiv
+   - Record the exact title, authors, venue, and year from the verified source.
+
+3. **Accuracy Requirements**:
+   - **Authors**: Must match exactly (correct names, order, and affiliations).
+   - **Title**: Must be character-accurate including capitalization.
+   - **Venue**: Conference/journal name must be official and complete.
+   - **Year**: Must be the actual publication year, not estimated.
+   - **Affiliations**: When mentioning research institutions, verify author affiliations from the paper.
+
+4. **Common Errors to Avoid**:
+   - ❌ Inventing paper titles or DOIs
+   - ❌ Misattributing works to wrong institutions (e.g., claiming Tsinghua work as from PKU)
+   - ❌ Confusing similar paper titles or authors
+   - ❌ Using outdated or retracted papers
+   - ❌ Citing papers that exist in preprint but not peer-reviewed venues
+
+5. **Recommended Workflow**:
+   - When writing research status sections (e.g., Chapter 1.2), use verified survey papers as primary sources.
+   - Cross-reference claims with multiple reliable sources.
+   - Prefer citing well-established works over obscure or unverifiable sources.
+   - Use reference paper: `/Users/byheng/Dissertation/ref_paper/视觉SLAM机器人中光束法平差优化芯片研究综述_莫霄睿.pdf` as authoritative source for BA accelerator research status.
+
+6. **Documentation**:
+   - When adding references to `Biblio/ref.bib`, include a comment with verification source:
+     ```bibtex
+     % Verified: Google Scholar, 2025-03-06
+     @article{example2025,
+       title={...},
+       ...
+     }
+     ```
+
+**VIOLATION CONSEQUENCES**: Fabricated references undermine academic integrity and can result in paper rejection or retraction. When in doubt, omit the reference or ask the user for verification.

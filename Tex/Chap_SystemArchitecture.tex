@@ -1,5 +1,9 @@
 \chapter{系统架构总体设计}\label{chap:architecture}
 
+本章将详细阐述基于 FPGA 的 SLAM 后端加速器的系统级架构设计。本系统选用赛灵思（Xilinx）Zynq 系列 SoC 作为核心计算平台，该平台通过高性能 AXI 总线将处理器系统（PS）与可编程逻辑（PL）紧密耦合，为软硬协同设计提供了物理基础。在开发流程上，采用 Vivado 工具套件进行硬件逻辑架构设计与综合，利用 Vitis 统一软件平台进行嵌入式驱动与应用开发，并通过 DMA 引擎实现 PS 与 PL 之间的高带宽数据交互。
+
+在此硬件基础之上，本章将依次论述系统的总体设计目标、软硬件功能的详细划分策略，以及连接软硬件两侧的数据流与通信协议设计。
+
 \section{总体设计目标}
 
 针对嵌入式自主移动平台对 SLAM 系统在实时性、能耗以及精度方面的严苛要求，本文设计的基于 FPGA 的后端加速器旨在通过软硬协同的设计思路，突破传统通用处理器的计算瓶颈。系统的总体设计目标主要包含以下四个方面：
@@ -16,21 +20,104 @@
 
 \section{软硬件功能划分}
 
-为了在 Zynq 异构 SoC 平台上实现最优的性能与能效平衡，本文遵循“计算密集型任务迁移至硬件，逻辑管理型任务保留在软件”的原则，对系统进行了深度的软硬件功能划分。系统整体分为处理器系统（Processing System, PS）端与可编程逻辑（Programmable Logic, PL）端两大部分。
+为了在 Zynq 异构 SoC 平台上实现最优的性能与能效平衡，本文遵循将计算密集型任务迁移至硬件、逻辑管理型任务保留在软件的设计原则，对系统进行了深度的软硬件功能划分。系统整体分为处理器系统（Processing System, PS）端与可编程逻辑（Programmable Logic, PL）端两大部分，如图~\ref{fig:hw_sw_partition}~所示。
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.95\textwidth]{Img/hw_sw_partition.png}
+    \bicaption{软硬件功能划分与数据流示意图}{Hardware-Software Functional Partitioning and Data Flow Diagram}
+    \label{fig:hw_sw_partition}
+\end{figure}
 
 \subsection{ARM 处理器端（PS）任务}
 
 ARM 处理器端主要负责系统的全局协调、低频逻辑评估以及对外部传感器的管理，重点执行具有高逻辑分歧度的非加速任务。其具体任务包括：
+
+\subsubsection{数据获取与多源同步}
+
+系统通过驱动程序实时采集来自双目相机的图像流与惯性测量单元（IMU）的原始加速度计和陀螺仪数据。由于视觉传感器与惯性传感器的采样频率和触发机制存在异步特性（相机通常工作在 20--30~Hz，IMU 则高达 200--400~Hz），系统需要在 PS 端实现精确的时间戳对齐与数据缓冲管理。具体实现上，采用基于硬件时钟的时间戳标注机制，并使用线性插值方法同步异步数据流，确保后续前端追踪与后端优化的观测数据具有时序一致性。
+
+\subsubsection{视觉前端追踪}
+
+本系统采用 SVO 2.0~\cite{forster2016svo} 作为视觉前端，实现快速鲁棒的特征提取与帧间追踪。SVO 2.0 是一种半直接单目视觉里程计（Semi-Direct Monocular Visual Odometry），结合了直接法的快速性与特征法的鲁棒性。其核心工作流程包括以下几个关键步骤：
+
+\paragraph{特征提取与初始化}
+系统在新到达的关键帧上执行 FAST（Features from Accelerated Segment Test）角点检测算法，提取图像中具有显著灰度变化的角点特征。为保证特征点在图像上的均匀分布，采用自适应非极大值抑制（Adaptive Non-Maximal Suppression, ANMS）策略，将图像划分为均匀网格并限制每个网格内的特征点数量上限。提取出的特征点被初始化为候选路标点，并建立对应的深度滤波器。
+
+\paragraph{深度滤波与三角化}
+由于单目相机缺乏直接的深度信息，系统采用贝叶斯深度滤波器对每个新特征点的逆深度进行概率估计。具体而言，对每个特征点维护一个高斯分布 $\mathcal{N}(\rho, \sigma^2)$，其中 $\rho$ 为逆深度均值，$\sigma^2$ 为不确定性。随着该特征点在后续帧中被持续观测，利用三角测量的几何约束对深度分布进行贝叶斯更新，直至不确定性 $\sigma^2$ 收敛到预设阈值以下，此时该特征点被正式提升为成熟路标点并参与后端优化。
+
+\paragraph{直接法特征对齐}
+SVO 2.0 采用基于光度一致性的直接法进行帧间运动估计。对于已跟踪的特征点，系统在当前帧中以其预测投影位置为中心，通过最小化光度残差（Photometric Residual）优化特征点在新帧中的精确像素坐标：
+\begin{equation}
+    \min_{\mathbf{u}} \sum_{i \in \mathcal{P}} \| I_{\text{ref}}(\mathbf{u}_i) - I_{\text{cur}}(\mathbf{u}_i + \Delta \mathbf{u}) \|^2
+\end{equation}
+其中 $I_{\text{ref}}$ 和 $I_{\text{cur}}$ 分别为参考帧和当前帧的灰度图像，$\mathcal{P}$ 为特征点邻域的像素集合，$\Delta \mathbf{u}$ 为像素级的位移增量。直接法避免了传统特征描述子的计算开销，显著提升了前端处理速度。
+
+\paragraph{关键帧选择策略}
+为防止关键帧冗余并确保滑动窗口内的帧间约束充分，系统采用基于场景覆盖度与视差的关键帧选择策略。当新帧与最近关键帧之间的平均特征点视差超过预设阈值（通常为 5--10 像素），或成功跟踪的特征点比例低于 80\%时，该帧被标记为新关键帧并加入滑动窗口。
+
+\subsubsection{滑动窗口状态管理}
+
+本系统采用基于滑动窗口的状态估计框架，维护固定数量（通常为 4--5 帧）的关键帧状态，以在计算复杂度与估计精度之间取得平衡。滑动窗口内的状态向量定义为：
+\begin{equation}
+    \mathbf{X} = \begin{bmatrix} \mathbf{x}_0, \mathbf{x}_1, \dots, \mathbf{x}_n \end{bmatrix}^{\mathrm{T}}
+\end{equation}
+其中每个关键帧状态 $\mathbf{x}_i$ 包含以下分量：
+\begin{equation}
+    \mathbf{x}_i = \begin{bmatrix} \mathbf{p}_i^{\mathrm{T}}, \mathbf{q}_i^{\mathrm{T}}, \mathbf{v}_i^{\mathrm{T}}, \mathbf{b}_a^{\mathrm{T}}, \mathbf{b}_g^{\mathrm{T}} \end{bmatrix}^{\mathrm{T}}
+\end{equation}
 \begin{itemize}
-    \item \textbf{数据获取与多源同步}：通过驱动程序实时采集相机图像与 IMU 原始数据，并对异步传感器数据流进行精确的时间戳对齐。
-    \item \textbf{视觉前端追踪}：执行 FAST 角点等特征提取操作，利用基于光流法的帧间特征追踪，为后端优化提供关键帧及观测约束。系统通过维护深度滤波器为后续位姿估计提供初始路标点信息。
-    \item \textbf{滑动窗口状态管理}：维护滑动窗口内关键帧的位姿（Pose）、速度（Velocity）以及传感器偏差（Bias）。负责关键帧的增删策略决策与状态图的更新。
-    \item \textbf{EKF 位姿与路标点更新}：基于 FPGA 端返回的压缩雅可比和残差项（即舒尔消元结果），在 CPU 端执行增量式扩展卡尔曼滤波（EKF）快速求解位姿增量并更新系统协方差矩阵。利用解耦后的特性，进行独立的轻量级路标点状态更新。
+    \item $\mathbf{p}_i \in \mathbb{R}^3$：第 $i$ 帧相机在世界坐标系下的位置向量。
+    \item $\mathbf{q}_i \in \mathbb{S}^3$：第 $i$ 帧相机的姿态四元数（Quaternion）。
+    \item $\mathbf{v}_i \in \mathbb{R}^3$：第 $i$ 帧时刻的三维速度向量。
+    \item $\mathbf{b}_a \in \mathbb{R}^3$：加速度计偏差（Accelerometer Bias）。
+    \item $\mathbf{b}_g \in \mathbb{R}^3$：陀螺仪偏差（Gyroscope Bias）。
 \end{itemize}
+
+当新关键帧加入滑动窗口且窗口已满时，系统需执行边缘化（Marginalization）操作以移除最旧的关键帧。边缘化过程需将被移除帧的观测约束信息保留为先验项，并转化为对剩余状态的约束，从而避免信息丢失。具体实现上，系统通过 Schur 补消元技术将被边缘化状态对应的 Hessian 矩阵块进行消元，并将结果合并到剩余状态的信息矩阵中，保持系统的一致性。
+
+\subsubsection{EKF 位姿与路标点更新}
+
+基于 SchurVINS~\cite{fan2024schurvins} 的设计思想，本系统采用扩展卡尔曼滤波（EKF）框架实现轻量化的状态更新，充分利用 FPGA 端返回的 Schur 消元结果，将位姿优化与路标点更新解耦，极大降低了计算复杂度。
+
+\paragraph{位姿更新}
+FPGA 端完成 Schur 消元后，输出降维的位姿相关信息矩阵 $\mathbf{S}$（即更新后的 $\mathbf{H}_{pp}$）和对应的梯度向量 $\mathbf{b}_p'$。这些量构成了仅关于位姿状态的边缘化正规方程：
+\begin{equation}
+    \mathbf{S} \Delta \mathbf{X}_p = -\mathbf{b}_p'
+\end{equation}
+其中 $\mathbf{S} = \mathbf{H}_{pp} - \mathbf{H}_{pm}\mathbf{H}_{mm}^{-1}\mathbf{H}_{pm}^{\mathrm{T}}$ 为 Schur 补矩阵，$\Delta \mathbf{X}_p$ 为位姿状态的增量。
+
+在 EKF 框架下，系统将上述信息矩阵视为等效观测模型的雅可比矩阵，并结合先验协方差 $\mathbf{P}$ 计算卡尔曼增益 $\mathbf{K}$：
+\begin{equation}
+    \mathbf{K} = \mathbf{P} \mathbf{S}^{\mathrm{T}} (\mathbf{S} \mathbf{P} \mathbf{S}^{\mathrm{T}} + \mathbf{R})^{-1}
+\end{equation}
+其中 $\mathbf{R}$ 为测量噪声协方差矩阵。随后更新位姿状态及其协方差：
+\begin{equation}
+    \mathbf{X}_p \leftarrow \mathbf{X}_p + \mathbf{K} \mathbf{b}_p'
+\end{equation}
+\begin{equation}
+    \mathbf{P} \leftarrow (\mathbf{I} - \mathbf{K} \mathbf{S}) \mathbf{P}
+\end{equation}
+
+由于 Schur 消元已将路标点状态从系统中消去，位姿更新的维度仅为滑动窗口内关键帧状态的总维度（通常为 $15n$，$n$ 为关键帧数量），相比传统的联合优化（包含数百个路标点）计算量降低了一个数量级。
+
+\paragraph{路标点更新}
+在位姿状态更新完成后，系统对每个路标点进行独立的增量更新。由于 Schur 消元过程中，路标点与位姿之间的耦合已被解耦，路标点的更新可并行执行。对于第 $k$ 个路标点，其更新梯度为：
+\begin{equation}
+    \mathbf{b}_{m,k}' = \mathbf{b}_{m,k} - \mathbf{H}_{pm,k}^{\mathrm{T}} \Delta \mathbf{X}_p
+\end{equation}
+路标点的三维坐标增量 $\Delta \mathbf{x}_{m,k}$ 由下式计算：
+\begin{equation}
+    \Delta \mathbf{x}_{m,k} = -\mathbf{H}_{mm,k}^{-1} \mathbf{b}_{m,k}'
+\end{equation}
+其中 $\mathbf{H}_{mm,k}$ 为第 $k$ 个路标点对应的 $3 \times 3$ Hessian 块。由于路标点之间相互独立，该过程可以在 CPU 多线程环境下高效并行化，或借助 FPGA 端预先计算的 $\mathbf{H}_{mm}^{-1}$ 进一步降低计算开销。
+
+通过上述解耦设计，系统实现了增量式的轻量化状态更新，避免了传统基于 Levenberg-Marquardt 迭代求解大规模稀疏线性方程组的高昂开销，为实时性提供了关键保障。
 
 \subsection{FPGA 逻辑端（PL）任务}
 
-FPGA 逻辑端作为协处理器与运算加速核心，利用其大规模并行计算能力处理算法中计算密度最高、数据流规整的稀疏矩阵运算与方程组消元过程。具体任务包括：
+FPGA 逻辑端作为协处理器与运算加速核心，利用其大规模并行计算能力处理算法中计算密度最高、数据流规整的稀疏矩阵运算与方程组消元过程。如图~\ref{fig:hw_sw_partition}~右侧所示，其具体任务包括：
 \begin{itemize}
     \item \textbf{观测处理与雅可比并行生成}：针对滑动窗口内的视觉观测残差，设计 5 级深度计算流水线，完成从坐标变换、重投影残差计算到关于位姿和路标点的雅可比偏导数（$\mathbf{J}_p$ 和 $\mathbf{J}_m$）的生成计算。
     \item \textbf{Hessian 矩阵块在线累加}：实时将流水线生成的雅可比矩阵进行外积计算，并基于稀疏性累加至片上缓存内的对应 Hessian 块区域（$\mathbf{H}_{pp}, \mathbf{H}_{pm}, \mathbf{H}_{mm}$ 及梯度项 $\mathbf{b}_p, \mathbf{b}_m$）。
@@ -43,16 +130,9 @@ FPGA 逻辑端作为协处理器与运算加速核心，利用其大规模并行
 
 为了有效支撑上述的 PS/PL 异构协同计算架构，必须设计一套与算法流程高度匹配的数据流调度策略以及高效的互联通信协议。
 
-\begin{figure}[htbp]
-    \centering
-    \resizebox{0.95\linewidth}{!}{\input{Img/BA_accelerator_arch.tex}}
-    \bicaption{Schur Kernel 硬件加速器架构}{Architecture of Schur Kernel Hardware Accelerator}
-    \label{fig:ba_core_arch_sys}
-\end{figure}
-
 \subsection{系统级数据交互分析}
 
-一次完整的 SLAM 后端优化迭代中的软硬件数据流转可总结为三个主要阶段，具体交互逻辑如图~\ref{fig:ba_core_arch_sys}（详见硬件架构设计部分的配图）所示：
+一次完整的 SLAM 后端优化迭代中的软硬件数据流转可总结为三个主要阶段，具体交互逻辑如图~\ref{fig:ba_core_arch} 所示（详见第~\ref{chap:hardware_design} 章硬件架构设计）：
 
 \begin{enumerate}
     \item \textbf{配置与输入搬运阶段（PS $\rightarrow$ PL）}：

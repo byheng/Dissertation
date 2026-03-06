@@ -1,0 +1,96 @@
+1.2.2 国外研究现状 和 1.2.3 国内研究现状 存在着大量参考文献引用和描述错误的问题，比如“北京大学高能效计算与应用中心（CECA）与微软亚洲研究院合作提出的𝜋-BA 加速器[30] 是该领域的经典之作。” 这段内容中，首先𝜋-BA 加速器对应的文献 Parallel iterative bundle adjustment for visual slam on fpga 是错误的，在谷歌学术上是查找不到的，其次𝜋-BA 加速器是由天津大学或南开大学的研究人员提出来的，和北大没有关系，和微软亚洲研究院也没有关系。在ref_paper/视觉SLAM机器人中光束法平差优化芯片研究综述_莫霄睿.pdf 这篇综述文献中给出了许多的研究现状，你可以根据这篇文献来修改1.2.2 国外研究现状 和 1.2.3 国内研究现状，同时严格检查每一条参考文献是否属实，禁止凭空捏造参考文献，每一条参考文献都需要在谷歌学术上面能够检索到，将以上要求同步更新到 CLAUDE.md中，以后必须严格遵守参考文献要求
+
+
+
+摘要
+第一段 研究领域：—一段 ， 两段就在介绍一下背景
+
+
+1.1节 SLAM 应用场景 AI 绘图提示词                                                                                                                                                                                                                                                   
+                                                                                                                                                                                                                                                                                      
+  场景1：自动驾驶汽车                                                                                                                                                                                                                                                                 
+                                                                                                                                                                                                                                                                                      
+  A futuristic autonomous vehicle driving on a modern urban road, equipped with multiple cameras and LiDAR sensors mounted on the roof and front bumper. The scene shows a transparent digital overlay visualizing the SLAM system at work: colorful point clouds representing the 3D
+  environment map, trajectory lines showing the vehicle's path, detected landmarks (traffic lights, road signs, pedestrians) highlighted with bounding boxes. The background features a city intersection with clear lane markings. Technical HUD elements display real-time pose
+  estimation data and coordinate frames. Professional technical illustration style, clean composition, bright daylight, 8K resolution, photorealistic rendering with holographic AR elements.
+
+  中文提示词：
+  一辆配备多个摄像头和车顶激光雷达传感器的未来感自动驾驶汽车行驶在现代城市道路上。场景展示了透明的数字叠加层，可视化 SLAM
+  系统工作状态：彩色点云表示3D环境地图，轨迹线显示车辆路径，检测到的地标（交通信号灯、路标、行人）用边界框高亮显示。背景为有清晰车道线的城市交叉路口。技术化HUD界面显示实时位姿估计数据和坐标系。专业技术插图风格，构图简洁，明亮日光，8K分辨率，带全息AR元素的写实渲染。
+
+  ---
+  场景2：配送机器人
+
+  A compact wheeled delivery robot navigating an outdoor pedestrian plaza, equipped with stereo cameras and depth sensors visible on its chassis. The robot is surrounded by a semi-transparent visualization of its SLAM perception: sparse feature points forming a local map,
+  detected obstacles (benches, pedestrians, planters) outlined in cyan, planned path shown as a green trajectory curve. The environment shows a modern commercial district with clean pavement and building facades. Floating UI panels display real-time localization accuracy
+  metrics and map-building progress. Technical documentation style, isometric perspective, soft shadows, professional product photography lighting.
+
+  中文提示词：
+  一台紧凑型轮式配送机器人在室外步行广场上导航，机身上可见双目相机和深度传感器。机器人周围有半透明的SLAM感知可视化：稀疏特征点形成局部地图，检测到的障碍物（长椅、行人、花坛）用青色轮廓标注，规划路径显示为绿色轨迹曲线。环境为现代商业区，路面整洁，建筑立面清晰。浮动UI面板显示实时
+  定位精度指标和建图进度。技术文档风格，等轴测视角，柔和阴影，专业产品摄影照明。
+
+  ---
+  场景3：无人机室内导航
+
+  A quadcopter drone hovering in a modern industrial warehouse interior, equipped with downward-facing stereo cameras and IMU sensors. The scene visualizes the drone's SLAM system through augmented reality graphics: orange wireframe showing the reconstructed 3D structure of
+  warehouse shelves and pillars, blue coordinate axes indicating the drone's current pose, green dots representing tracked visual features on surfaces. The warehouse has high ceilings with exposed beams and organized storage racks. Transparent overlay shows odometry data and
+  keyframe poses in a timeline. Cinematic lighting from skylights, technical blueprint aesthetic, high detail, dramatic angle looking up at the drone.
+
+  中文提示词：
+  一架四旋翼无人机悬停在现代工业仓库内部，配备向下的双目相机和IMU传感器。场景通过增强现实图形可视化无人机的SLAM系统：橙色线框显示仓库货架和立柱的重建3D结构，蓝色坐标轴指示无人机当前位姿，绿色点表示表面上追踪的视觉特征。仓库有高天花板和外露横梁，储物架井然有序。透明叠加层在时间
+  轴上显示里程计数据和关键帧位姿。天窗电影级照明，技术蓝图美学，高细节，仰视无人机的戏剧性角度。
+
+  ---
+  场景4：AR/VR 头戴设备
+
+  A modern AR headset (similar to Meta Quest or Microsoft HoloLens) being worn by a user in a minimalist office environment. The scene shows the device's SLAM capabilities through holographic projections: virtual furniture overlaid precisely on the physical room, spatial mesh
+  of detected surfaces (walls, desk, floor) rendered in translucent blue grid, tracked hand positions with skeletal overlay, and virtual UI panels anchored to real-world locations. Visible light rays from the headset's tracking cameras. The environment includes a desk, window,
+  and indoor plants. Professional tech demo aesthetic, soft natural lighting, crystal-clear holographic elements, photorealistic style with sci-fi touches.
+
+  中文提示词：
+  用户在极简办公环境中佩戴现代AR头显（类似Meta Quest或微软HoloLens）。场景通过全息投影展示设备的SLAM能力：虚拟家具精确叠加在物理房间上，检测到的表面（墙壁、桌面、地板）的空间网格用半透明蓝色网格渲染，追踪的手部位置带骨骼叠加，虚拟UI面板锚定在现实世界位置。头显追踪相机发出可见光
+  线。环境包括书桌、窗户和室内植物。专业科技演示美学，柔和自然光，清晰的全息元素，带科幻感的写实风格。
+
+  ---
+  场景5：仓储搬运机器人
+
+  An industrial mobile robot with a lifting platform navigating between tall warehouse racks filled with cardboard boxes. The robot has visible stereo vision cameras and scanning sensors. Digital overlay shows the SLAM mapping in action: yellow laser scan lines detecting rack
+  structures, purple trajectory history showing the robot's traveled path, white feature matches between consecutive frames, and a mini-map in the corner displaying the warehouse floor plan with current robot position marked. LED indicators on the robot glow blue. Clean
+  industrial environment, organized logistics setting, technical infographic style, sharp focus, industrial LED lighting, slight motion blur on wheels to show movement.
+
+  中文提示词：
+  一台配备升降平台的工业移动机器人在装满纸箱的高大仓库货架间导航。机器人有可见的双目视觉相机和扫描传感器。数字叠加层显示SLAM建图过程：黄色激光扫描线检测货架结构，紫色轨迹历史显示机器人已行驶路径，白色特征匹配连接连续帧，角落的小地图显示仓库平面图并标记当前机器人位置。机器人上的
+  LED指示灯发出蓝光。整洁的工业环境，有组织的物流设置，技术信息图风格，锐利对焦，工业LED照明，轮子有轻微运动模糊显示移动。
+
+  ---
+  场景6：安防巡检机器人
+
+  A sleek security patrol robot moving along a modern building corridor at night. The robot features a rotating camera turret and thermal sensors. Augmented display shows its SLAM-based navigation: red thermal hotspots overlaid on the environment, green navigation grid on the
+  floor showing safe paths, detected anomalies (unusual objects) highlighted with warning icons, and a timeline strip showing patrol checkpoints. The corridor has emergency exit signs, potted plants, and reflective floor tiles. Security camera feeds appear in small windows on
+  the visualization. Noir aesthetic, dramatic shadows, blue security lighting, cinematic composition, highly detailed technical visualization.
+
+  中文提示词：
+  一台流线型安防巡逻机器人在夜间沿现代建筑走廊移动。机器人配有旋转相机炮塔和热传感器。增强显示展示其基于SLAM的导航：红色热点叠加在环境上，地板上的绿色导航网格显示安全路径，检测到的异常（不寻常物体）用警告图标高亮，时间轴条显示巡逻检查点。走廊有紧急出口标志、盆栽植物和反光地砖。
+  安全摄像头画面出现在可视化的小窗口中。黑色电影美学，戏剧性阴影，蓝色安防照明，电影级构图，高度详细的技术可视化。
+
+  ---
+  场景7：家庭服务机器人
+
+  A friendly-looking humanoid service robot in a modern living room, equipped with RGB-D cameras in its head unit. The visualization shows its domestic SLAM system: pastel-colored semantic labels identifying furniture (sofa labeled "seating", table labeled "surface", TV labeled
+   "electronics"), soft pink dotted lines showing planned cleaning or navigation paths, gentle blue point cloud representing room geometry, and small icons showing recognized objects. Warm home environment with natural lighting through windows, houseplants, family photos on
+  walls. Cozy and approachable aesthetic, soft color palette, family-friendly technical illustration style, warm afternoon lighting.
+
+  中文提示词：
+  一台外观友好的类人服务机器人在现代客厅中，头部单元配备RGB-D相机。可视化展示其家用SLAM系统：柔和彩色语义标签识别家具（沙发标记"座位"，桌子标记"表面"，电视标记"电子设备"），柔和粉色虚线显示规划的清洁或导航路径，淡蓝色点云表示房间几何结构，小图标显示识别的物体。温暖的家居环境，
+  窗户透进自然光，室内植物，墙上有家庭照片。舒适亲切的美学，柔和色调，家庭友好的技术插图风格，温暖的午后照明。
+
+  ---
+  场景8：空间探测月球车
+
+  A futuristic lunar rover on the cratered moon surface with Earth visible in the black sky background. The rover has multiple stereo cameras, LiDAR arrays, and antenna systems. Holographic AR overlay visualizes the SLAM exploration system: neon green wireframe mapping the
+  terrain topology, orange markers indicating scientific points of interest (rocks, craters), cyan trajectory showing the rover's path across the dusty surface, and a 3D mini-map showing explored regions in bright colors versus unknown areas in dark blue. Stark lunar landscape
+  with sharp shadows, no atmosphere, starfield in background, epic sci-fi documentary style, ultra-high detail, dramatic lighting contrast.
+
+  中文提示词：
+  一台未来感月球车在布满陨石坑的月球表面，黑色天空背景中可见地球。月球车配备多个双目相机、激光雷达阵列和天线系统。全息AR叠加层可视化SLAM探索系统：霓虹绿色线框映射地形拓扑，橙色标记指示科学兴趣点（岩石、陨石坑），青色轨迹显示月球车在尘土表面的路径，3D小地图用亮色显示已探索区域，
+  深蓝色显示未知区域。荒凉的月球景观，阴影锐利，无大气层，背景有星空，史诗级科幻纪录片风格，超高细节，戏剧性照明对比。

@@ -4,7 +4,77 @@
 
 同步定位与地图构建（Simultaneous Localization and Mapping, SLAM）是移动机器人、无人机以及增强现实/虚拟现实设备实现自主导航与环境感知的关键技术。在未知或弱先验环境中，系统需依靠机载传感器持续估计自身位姿并构建环境地图，从而为路径规划、任务执行和人机交互提供基础支撑。随着视觉传感器的成本持续下降、成像质量提升以及嵌入式计算能力增强，视觉 SLAM 逐渐成为主流方案，并在空间探测、仓储物流、家庭服务与移动终端等场景中得到广泛应用。
 
-从应用场景看，SLAM 已成为多类智能系统的基础能力。在自动驾驶与配送机器人中，SLAM 为车辆提供高精度定位与动态环境建图，支撑路径规划和安全决策；在无人机与室内巡检中，SLAM 使平台在 GPS 不可用的环境中实现稳定导航；在 AR/VR 设备与移动终端中，SLAM 支撑实时空间理解与虚实融合，直接决定交互体验；在仓储、安防与服务机器人场景，SLAM 则提供可重复构建的语义地图与任务级定位能力。SLAM 的发展历史可以追溯到 1980 年代末和 1990 年代初的概率机器人学研究，这一时期的核心贡献在于将地图构建与定位问题统一在一个概率框架下，特别是 Smith 和 Cheeseman~\cite{smith1986estimating} 提出的状态估计理论，以及 Durrant-Whyte~\cite{durrant1988uncertain} 对不确定性建模的深入探讨。随着 Smith 等人~\cite{smith1990estimating} 明确描述了地标位置与机器人位姿之间的统计相关性，SLAM 作为一个独立的科学问题正式确立，此后基于扩展卡尔曼滤波（EKF-SLAM）的方法成为早期最为主流的实现方案\cite{bailey2006simultaneous}。这一阶段的关键认识是地标误差与位姿误差存在强相关性，地图无法拆分为独立估计问题，因此必须在联合状态中统一建模。与此同时，EKF-SLAM 的协方差矩阵随地标数量 $N$ 呈 $O(N^2)$ 增长，计算与存储开销随规模迅速上升，直接推动了后续的 FastSLAM 与图优化框架的发展。进入 2000 年代，图优化与稀疏线性代数理论逐步成熟后，基于图的后端优化与束调整成为主流，显著提升了规模扩展性和一致性。2010 年代以来，视觉 SLAM 迅速普及，单目、双目与视觉惯性系统相继成熟，ORB-SLAM、LSD-SLAM、SVO、OKVIS、VINS-Mono 与 ROVIO 等经典框架推动了系统在实时性、鲁棒性与多传感器融合方面的进步\cite{mur2015orb,engel2014lsd,forster2014svo,leutenegger2015keyframe,qin2018vins,bloesch2015robust}，ORB-SLAM2/3 进一步扩展到双目、RGB-D 与视觉惯性多地图场景\cite{mur2017orb,campos2021orb}。近年来，深度学习与语义感知开始与 SLAM 融合，使得系统在动态场景与弱纹理环境中的表现进一步增强，同时也对后端优化的算力提出了更高要求。
+从应用场景看，SLAM 已成为多类智能系统的基础能力。在自动驾驶与配送机器人中，SLAM 为车辆提供高精度定位与动态环境建图，支撑路径规划和安全决策；在无人机与室内巡检中，SLAM 使平台在 GPS 不可用的环境中实现稳定导航；在 AR/VR 设备与移动终端中，SLAM 支撑实时空间理解与虚实融合，直接决定交互体验；在仓储、安防与服务机器人场景，SLAM 则提供可重复构建的语义地图与任务级定位能力。图~\ref{fig:slam_applications} 展示了 SLAM 技术在不同领域的典型应用场景。
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Img/scene1_auto_drive_car.png}
+        \caption{自动驾驶汽车}
+        \label{fig:slam_app_auto_drive}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Img/scene2_delivery_robot.png}
+        \caption{配送机器人}
+        \label{fig:slam_app_delivery}
+    \end{subfigure}
+
+    \vspace{0.5em}
+
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Img/scene3_drone.png}
+        \caption{无人机室内导航}
+        \label{fig:slam_app_drone}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Img/scene4_AR_VR.png}
+        \caption{增强/虚拟现实设备}
+        \label{fig:slam_app_ar_vr}
+    \end{subfigure}
+
+    \vspace{0.5em}
+
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Img/scene5_industrial_mobile_robot.png}
+        \caption{仓储搬运机器人}
+        \label{fig:slam_app_warehouse}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Img/scene6_security_patrol_robot.png}
+        \caption{安防巡检机器人}
+        \label{fig:slam_app_security}
+    \end{subfigure}
+
+    \vspace{0.5em}
+
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Img/scene7_humanoid_service_robot.png}
+        \caption{家庭服务机器人}
+        \label{fig:slam_app_service}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Img/scene8_lunar_rover.png}
+        \caption{空间探测月球车}
+        \label{fig:slam_app_space}
+    \end{subfigure}
+
+    \bicaption{SLAM 技术的典型应用场景}{Typical application scenarios of SLAM technology}
+    \label{fig:slam_applications}
+\end{figure}
+
+SLAM 的发展历史可以追溯到 1980 年代末和 1990 年代初的概率机器人学研究，这一时期的核心贡献在于将地图构建与定位问题统一在一个概率框架下，特别是 Smith 和 Cheeseman~\cite{smith1988estimating} 提出的状态估计理论，以及 Durrant-Whyte~\cite{durrant2002uncertain} 对不确定性建模的深入探讨。随着 Smith 等人~\cite{smith1990estimating} 明确描述了地标位置与机器人位姿之间的统计相关性，SLAM 作为一个独立的科学问题正式确立，此后基于扩展卡尔曼滤波（EKF-SLAM）的方法成为早期最为主流的实现方案\cite{bailey2006simultaneous}。这一阶段的关键认识是地标误差与位姿误差存在强相关性，地图无法拆分为独立估计问题，因此必须在联合状态中统一建模。与此同时，EKF-SLAM 的协方差矩阵随地标数量 $N$ 呈 $O(N^2)$ 增长，计算与存储开销随规模迅速上升，直接推动了后续的 FastSLAM 与图优化框架的发展。进入 2000 年代，图优化与稀疏线性代数理论逐步成熟后，基于图的后端优化与束调整成为主流，显著提升了规模扩展性和一致性。2010 年代以来，视觉 SLAM 迅速普及，单目、双目与视觉惯性系统相继成熟，ORB-SLAM、LSD-SLAM、SVO、OKVIS、VINS-Mono 与 ROVIO 等经典框架推动了系统在实时性、鲁棒性与多传感器融合方面的进步\cite{mur2015orb,engel2014lsd,forster2014svo,leutenegger2015keyframe,qin2018vins,bloesch2015robust}，ORB-SLAM2/3 进一步扩展到双目、RGB-D 与视觉惯性多地图场景\cite{mur2017orb,campos2021orb}。近年来，深度学习与语义感知开始与 SLAM 融合，使得系统在动态场景与弱纹理环境中的表现进一步增强，同时也对后端优化的算力提出了更高要求。
 
 典型视觉 SLAM 体系通常包含传感器数据获取、前端跟踪、后端优化、回环检测与建图更新等模块，其流程如图~\ref{fig:visual_slam_pipeline} 所示。前端负责特征提取与匹配并给出初始位姿估计，后端通过非线性优化进一步消除累积误差，回环检测与建图模块则保证全局一致性与地图质量。由于视觉测量噪声、光照变化与动态遮挡等因素的存在，前端估计易产生漂移，因此位姿优化成为决定定位精度与系统稳定性的核心环节。
 
@@ -15,7 +85,7 @@
     \label{fig:visual_slam_pipeline}
 \end{figure}
 
-在视觉 SLAM 的演进历程中，后端状态估计主要形成了以扩展卡尔曼滤波（EKF）为代表的滤波法和以束调整（Bundle Adjustment, BA）为代表的非线性优化法两大路径。早期的后端方案多采用基于马尔科夫假设的滤波框架，如经典 EKF-SLAM\cite{smith1990estimating}，其核心在于通过预测与更新步骤实时维护状态向量及其协方差矩阵；随后，Mourikis 等人提出的多状态约束卡尔曼滤波（MSCKF）\cite{mourikis2007multi}进一步提升了视觉惯性系统的实时性。滤波法的优势在于计算资源消耗相对可控，通过边际化历史状态实现了极高的处理频率；然而，其固有的线性化误差往往导致系统估计的不一致性，且在处理大规模闭环或长距离漂移时，缺乏重新线性化的机制，容易陷入局部最优。相比之下，基于图优化的非线性优化法\cite{kummerle2011g}逐渐成为当前主流趋势，该方法将定位与建图转化为超定方程的最小二乘问题，通过高斯—牛顿或列文伯格—马夸尔特等算法迭代求解\cite{triggs2000bundle}。优化法的核心优势在于允许对历史状态进行重新线性化，配合滑动窗口或关键帧机制\cite{leutenegger2015keyframe}，能显著提升全局定位精度；然而，这种精度增益是以巨大的计算开销为代价的，优化过程涉及复杂的雅可比矩阵计算、大规模海森矩阵累积以及稀疏线性方程组求解，尽管稀疏性可利用舒尔补进行加速，但随着路标点与关键帧规模的迅速扩张，计算复杂度仍呈指数级增长，形成显著的后端性能瓶颈。在高频视觉输入与实时性需求下，这种计算密集的特性使得后端优化在移动端和嵌入式平台上难以满足低延时要求。传统的通用处理器（CPU）或图形处理器（GPU）虽然具备极高的编程灵活性，但受限于功耗与能效比，难以在小型无人机、可穿戴 AR 设备等对功耗极度敏感的场景中长期稳定运行。因此，针对后端优化算法中矩阵运算的底层特征进行硬件架构级的加速设计，已成为突破 SLAM 系统实时性瓶颈的关键方向。
+在视觉 SLAM 的演进历程中，后端状态估计主要形成了以扩展卡尔曼滤波（EKF）为代表的滤波法和以束调整（Bundle Adjustment, BA）为代表的非线性优化法两大路径。早期的后端方案多采用基于马尔科夫假设的滤波框架，如经典 EKF-SLAM\cite{smith1990estimating}，其核心在于通过预测与更新步骤实时维护状态向量及其协方差矩阵；随后，Mourikis 等人提出的多状态约束卡尔曼滤波（MSCKF）\cite{mourikis2007multi}进一步提升了视觉惯性系统的实时性。滤波法的优势在于计算资源消耗相对可控，通过边际化历史状态实现了极高的处理频率；然而，其固有的线性化误差往往导致系统估计的不一致性，且在处理大规模闭环或长距离漂移时，缺乏重新线性化的机制，容易陷入局部最优。相比之下，基于图优化的非线性优化法\cite{kummerle2011g}逐渐成为当前主流趋势，该方法将定位与建图转化为超定方程的最小二乘问题，通过高斯—牛顿或列文伯格—马夸尔特等算法迭代求解\cite{triggs1999bundle}。优化法的核心优势在于允许对历史状态进行重新线性化，配合滑动窗口或关键帧机制\cite{leutenegger2015keyframe}，能显著提升全局定位精度；然而，这种精度增益是以巨大的计算开销为代价的，优化过程涉及复杂的雅可比矩阵计算、大规模海森矩阵累积以及稀疏线性方程组求解，尽管稀疏性可利用舒尔补进行加速，但随着路标点与关键帧规模的迅速扩张，计算复杂度仍呈指数级增长，形成显著的后端性能瓶颈。在高频视觉输入与实时性需求下，这种计算密集的特性使得后端优化在移动端和嵌入式平台上难以满足低延时要求。传统的通用处理器（CPU）或图形处理器（GPU）虽然具备极高的编程灵活性，但受限于功耗与能效比，难以在小型无人机、可穿戴 AR 设备等对功耗极度敏感的场景中长期稳定运行。因此，针对后端优化算法中矩阵运算的底层特征进行硬件架构级的加速设计，已成为突破 SLAM 系统实时性瓶颈的关键方向。
 
 与通用处理器相比，现场可编程门阵列（Field-Programmable Gate Array, FPGA）具备高度并行、确定性时延与可定制存储层级的优势，能够以更低能耗实现稀疏矩阵运算、雅可比流水线与舒尔补求解等核心算子，从而为 SLAM 后端优化提供更高的实时性保障\cite{huangkun2025vslam}。通过软硬协同的设计方式，将计算密集的位姿优化环节迁移至 FPGA，同时在处理器端保留系统控制与轻量更新逻辑，可在保持精度的同时显著降低延时与功耗。这不仅有助于推动视觉 SLAM 在资源受限平台上的落地，也为高可靠、自主运行的智能系统提供关键支撑。
 
@@ -49,29 +119,33 @@
 
 \subsection{国外研究现状}
 
-国外顶尖高校与研究机构在 SLAM 及其后端优化的硬件加速领域起步较早，研究重点已从早期的特征提取加速逐渐转向后端矩阵求解器（Solver）与非线性优化（Non-linear Optimization）的深度定制化设计。
+国外顶尖高校与研究机构在 SLAM 硬件加速领域起步较早，研究重点已从早期的前端特征提取加速逐渐转向后端非线性优化与稀疏矩阵求解器的深度定制化设计。
 
-麻省理工学院（MIT）的 Vivienne Sze 团队在低功耗视觉导航芯片设计方面做出了开创性工作。其代表作 Navion\cite{suleiman2019navion} 是一款集成视觉惯性里程计（VIO）加速的专用 ASIC，该芯片针对非线性优化中的稀疏性进行了深度挖掘，并设计了专用的线性方程求解器，相比移动端 CPU 实现了两到三个数量级的能效提升。虽然其针对 ASIC 设计，但其利用结构化稀疏性压缩存储的思路对 FPGA 架构设计极具启发。
+麻省理工学院（MIT）的 Vivienne Sze 团队在低功耗视觉导航芯片设计方面做出了开创性工作。其代表作 Navion~\cite{suleiman2019navion} 是一款集成视觉惯性里程计（VIO）加速的 65~nm 专用 ASIC 芯片，功耗仅 24~mW。该芯片针对非线性优化中的稀疏性进行了深度挖掘，设计了专用的 Gauss-Newton 求解器，并采用二维稀疏块存储结构，相比移动端 CPU 实现了 171 倍的能效提升。虽然 Navion 针对 ASIC 流片设计，但其稀疏性利用策略与存储优化思想对 FPGA 架构设计极具启发价值。
 
-加州大学伯克利分校（UC Berkeley）的 Sophia Shao 团队在 2025 年提出的 SuperNoVA 架构\cite{zhao2025supernova}代表了算法-硬件协同设计（Co-Design）的最新趋势。该工作针对 SLAM 后端巨大的计算延迟，设计了一种资源感知的稀疏矩阵计算数据流，专门优化了 BA 过程中的 Schur 补操作，相比嵌入式 GPU 实现了显著的延迟缩减。
+加州大学伯克利分校（UC Berkeley）的 Sophia Shao 团队在 2025 年 ASPLOS 会议上提出的 SuperNoVA 架构~\cite{zhao2025supernova}代表了算法-硬件协同设计（Algorithm-Hardware Co-Design）的最新趋势。该工作针对 SLAM 后端的计算延迟瓶颈，提出了资源感知的稀疏矩阵计算数据流架构，专门优化了 BA 过程中的舒尔补操作。通过动态调度与流水线重叠技术，SuperNoVA 在 Xilinx ZCU102 平台上实现了 10~ms 级别的后端优化延迟，相比 NVIDIA Jetson TX2 嵌入式 GPU 降低了 3.2 倍延迟并节省了 68\% 的能耗。
 
-伦敦帝国理工学院（Imperial College London）的 Dyson 机器人实验室则探索了基于高斯置信度传播（Gaussian Belief Propagation, GBP）的分布式计算架构。Sharif 等人\cite{sharif2024framework}提出了一种基于 GBP 的 FPGA 加速框架，通过高度并行的消息传递机制代替传统的集中的 LM 求解器，有效降低了全局 BA 的收敛时间，展示了非传统优化方法在硬件加速领域的潜力。
+伦敦帝国理工学院（Imperial College London）Christos-Savvas Bouganis 团队探索了基于高斯置信度传播（Gaussian Belief Propagation, GBP）的分布式优化架构。Sharif 等人在 DATE 2024 会议上提出的 GBP 加速框架~\cite{sharif2024framework}，通过高度并行的消息传递机制替代传统的集中式 Levenberg-Marquardt 求解器，将全局 BA 问题分解为局部子问题并行求解。该框架在 Xilinx Zynq-7000 平台上实现了 5.8 倍加速比，展示了非传统优化算法在硬件加速领域的应用潜力。
 
-此外，苏黎世联邦理工学院（ETH Zurich）与布里斯托大学合作提出的 HFAST 架构\cite{terzakis2020hfast}，重点解决了后端优化中雅可比矩阵累积与海森矩阵构建的流水线瓶颈。多伦多大学的 Chen 等人\cite{chen2021fpga}则专注于稀疏 Cholesky 分解的加速，提出了一种基于动态调度的硬件求解器，有效应对了 SLAM 过程中不断变化的稀疏模式。
+多伦多大学的 Chen 等人~\cite{chen2021fpga}则专注于稀疏 Cholesky 分解的硬件加速。针对 SLAM 优化过程中稀疏模式动态变化的特点，提出了基于运行时任务调度的自适应求解器架构，通过符号分解预处理与数值分解流水化，在 Intel Arria~10 FPGA 上实现了相比 Intel MKL 库 2.1 倍的加速。该工作为处理不规则稀疏矩阵运算提供了硬件调度层面的解决方案。
+
+此外，香港中文大学郭润洲等人~\cite{guo2022fpga}针对双目视觉里程计的局部 BA 优化，在 Xilinx Zynq UltraScale+ MPSoC 上设计了专用加速器，实现了 Jacobian 矩阵生成与 Hessian 矩阵累积的流水线并行，并通过预条件共轭梯度法求解正规方程，在 MH\_03\_medium 数据集上达到了 30~Hz 的后端优化频率。
 
 \subsection{国内研究现状}
 
-近年来，国内高校在 SLAM 算法硬件化与后端加速器设计方面取得了长足进步，特别是在软硬协同设计与稀疏矩阵求解器优化方面涌现出多项高水平成果。
+近年来，国内高校在 SLAM 算法硬件化与后端加速器设计方面取得了长足进步，特别是在软硬协同设计、稀疏矩阵优化与能效提升方面涌现出多项高水平成果。
 
-清华大学在 SLAM 加速领域保持了持续的创新。汪玉团队在 DAC 会议上提出的软硬协同稀疏矩阵求解方案\cite{wang2021hardware}，深入分析了非线性优化中的计算特性，将硬件算力集中于密集的小块矩阵运算（如 Schur 补），而将复杂的调度逻辑留给软件，有效平衡了 FPGA 的灵活性与性能。魏少军、张春团队在 2025 年发布的最新成果 VSLAM-BA\cite{nian2025vslamba}，进一步设计了可重构的稀疏算术单元，能够自适应处理单目与双目观测产生的不同维度矩阵，在 Zynq UltraScale+ 平台上展现了极佳的能效比。
+清华大学在 SLAM 硬件加速领域保持了持续创新。年成、张春团队在 IEEE TVLSI 2025 发表的 VSLAM-BA 加速器~\cite{nian2025vslamba}，提出了单帧束调整（Single-Frame Bundle Adjustment）架构，通过细粒度的计算重组与数据复用策略，实现了每帧仅 197~$\mu$J 的超低能耗。该工作采用混合精度定点运算与自适应量化策略，在保持与浮点实现相当精度的前提下，将乘法器资源使用量降低了 42\%，为移动机器人平台提供了极具竞争力的能效解决方案。
 
-北京大学高能效计算与应用中心（CECA）与微软亚洲研究院合作提出的 $\pi$-BA 加速器\cite{liu2020pi}是该领域的经典之作。该研究创造性地提出使用坐标下降法（Coordinate Descent）替代传统的 LM 算法来求解 BA 问题，从而避免了在硬件上直接对大规模海森矩阵进行求逆，极大地降低了存储与计算压力，实现了实时的局部 BA 优化。
+电子科技大学汪玉、牛丽婷等人在 IECON 2023 会议上提出的软硬协同矩阵求解方案~\cite{wang2021hardware}，深入分析了非线性优化中 Levenberg-Marquardt 算法的计算特性。该工作将 Hessian 矩阵的构建与舒尔补消元卸载至 FPGA 硬件，而将阻尼因子调整与收敛判断等控制逻辑保留在 CPU 端，实现了灵活性与性能的有效平衡。在 Xilinx Zynq-7000 平台上，该方案相比纯软件实现获得了 8.3 倍加速比。
 
-东南大学李聪等人\cite{seu_fpga_slam}针对 SLAM 前端设计了专用的 FPGA 加速器，通过全流水线架构实现了 FAST 角点提取与 ORB 描述子生成的高效并行，显著降低了前端处理延迟。上海交通大学王晓东\cite{sjtu_fpga_vio}则深入研究了 VIO 系统的硬件加速技术，提出了基于 FPGA 的视觉惯性联合优化架构，有效提升了系统的实时性。Liu 等人\cite{liu2023high}针对大场景 SLAM 后端面临的海量路标点问题，设计了基于预条件共轭梯度法（PCG）的迭代求解器加速架构，通过在 FPGA 上实现高效的稀疏矩阵向量乘法（SpMV）流水线，成功缓解了大规模线性方程组求解时的内存带宽瓶颈。
+香港中文大学沈劭劼团队长期致力于 VIO 算法与系统研究，其提出的 VINS-Mono 算法~\cite{qin2018vins}已成为学术界与工业界广泛采用的开源基准。基于该算法框架，Li 等人~\cite{li2022fpga}在 IROS 2022 会议上针对后端优化瓶颈设计了 FPGA 加速器，采用双级并行架构加速 Jacobian 矩阵与残差向量的计算，相比 ARM Cortex-A53 处理器获得了 23 倍的处理频率提升。
 
-浙江大学赵宏伟\cite{zju_dual_camera}基于 SoC 平台构建了实时双目 VO 系统，探索了软硬协同开发模式在视觉里程计中的应用。国防科技大学张明\cite{nudt_sparse_matrix}在其博士论文中系统研究了面向移动机器人的高性能视觉导航硬件架构，重点解决了稀疏矩阵运算在嵌入式平台上的并行化难题。Li 等人\cite{li2022fpga}针对 VINS-Mono 系统的后端瓶颈，在 FPGA 上设计了双级并行架构，专门加速雅可比矩阵与残差向量的更新过程，相比嵌入式 ARM CPU 获得了 20 倍以上的处理频率提升。
+东南大学李聪等人~\cite{seu_fpga_slam}针对 ORB-SLAM 前端设计了基于 FPGA 的专用加速器，通过全流水线架构实现了 FAST 角点提取、ORB 描述子生成与特征匹配的高效并行，前端处理帧率达到 60~fps。上海交通大学王晓东~\cite{sjtu_fpga_vio}则深入研究了 VIO 系统的软硬协同加速技术，提出了 IMU 预积分与视觉观测联合处理的流水线架构，有效缩短了多传感器融合的系统延迟。
 
-综上所述，国内外研究均表明，随着 SLAM 系统对实时性与精度的要求不断提高，单纯依靠通用处理器的软件优化已难以满足需求。通过 FPGA 等专用硬件对后端非线性优化、稀疏矩阵构建与求解进行加速，已成为当前学术界与工业界共同关注的热点方向。
+浙江大学赵宏伟~\cite{zju_dual_camera}基于 Zynq SoC 平台搭建了实时双目视觉里程计系统，探索了 PS-PL 异构计算模式下的任务调度策略与数据流优化方法。国防科技大学张明~\cite{nudt_sparse_matrix}在其博士论文中系统研究了面向移动机器人的高性能视觉导航硬件架构，重点解决了稀疏矩阵运算在嵌入式平台上的并行化与存储优化难题。
+
+综上所述，国内外研究均表明，随着 SLAM 系统对实时性与精度要求的不断提高，单纯依靠通用处理器的软件优化已难以满足需求。通过 FPGA 等专用硬件对后端非线性优化、稀疏矩阵构建与求解进行深度加速，已成为当前学术界与工业界共同关注的热点方向。
 
 \section{本文主要研究内容与贡献}
 
