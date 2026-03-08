@@ -1,11 +1,32 @@
 {
     "latex-workshop.latex.tools": [
         {
+            "name": "artratex-xa",
+            "command": "./artratex.sh",
+            "args": [
+                "xa",
+                "Thesis.tex"
+            ],
+            "env": {}
+        },
+        {
             "name": "latexmk",
             "command": "latexmk",
             "args": [
                 "-xelatex",
                 "-outdir=Tmp",
+                "-synctex=1",
+                "-interaction=nonstopmode",
+                "-file-line-error",
+                "%DOC%"
+            ],
+            "env": {}
+        },
+        {
+            "name": "xelatex-fast",
+            "command": "xelatex",
+            "args": [
+                "-output-directory=Tmp",
                 "-synctex=1",
                 "-interaction=nonstopmode",
                 "-file-line-error",
@@ -25,6 +46,19 @@
     ],
     "latex-workshop.latex.recipes": [
         {
+            "name": "artratex xa (Recommended)",
+            "tools": [
+                "artratex-xa"
+            ]
+        },
+        {
+            "name": "xelatex fast (no bib)",
+            "tools": [
+                "xelatex-fast",
+                "copy-pdf"
+            ]
+        },
+        {
             "name": "latexmk (xelatex) -> Tmp -> Copy PDF",
             "tools": [
                 "latexmk",
@@ -32,6 +66,7 @@
             ]
         }
     ],
+    "latex-workshop.latex.recipe.default": "xelatex fast (no bib)",
     "latex-workshop.latex.magic.args": [
         "-synctex=1",
         "-interaction=nonstopmode",

@@ -1,0 +1,30 @@
+\begin{tikzpicture}[
+    node distance=8mm and 10mm,
+    >=Stealth,
+    every node/.style={font=\rmfamily},
+    proc/.style={draw, rounded corners=3pt, thick, align=center, minimum width=30mm, minimum height=8mm, fill=blue!8},
+    data/.style={draw, rounded corners=3pt, thick, align=center, minimum width=26mm, minimum height=7mm, fill=green!8},
+    note/.style={draw, rounded corners=3pt, thick, align=left, minimum width=42mm, minimum height=8mm, fill=yellow!10},
+    line/.style={->, thick}
+]
+
+\node[proc] (collect) {传感器安装与\\时间同步配置};
+\node[data, below=of collect] (capture) {采集双目图像与\\IMU 原始数据};
+\node[proc, below left=12mm and 22mm of capture] (stereo) {双目相机标定\\求解内参与畸变参数};
+\node[proc, below right=12mm and 22mm of capture] (imu) {IMU Allan 方差分析\\估计噪声参数};
+\node[data, below=18mm of capture] (extrinsic) {相机--IMU 外参与\\同步一致性验证};
+\node[proc, below left=12mm and 22mm of extrinsic] (camparam) {生成双目相机\\标定参数};
+\node[proc, below right=12mm and 22mm of extrinsic] (imuparam) {生成 IMU 噪声\\模型参数};
+\node[note, below=18mm of extrinsic] (deploy) {系统部署使用：\\1.~图像去畸变与双目几何约束\\2.~IMU 预积分与噪声建模\\3.~后端优化权重配置};
+
+\draw[line] (collect) -- (capture);
+\draw[line] (capture) -- (stereo);
+\draw[line] (capture) -- (imu);
+\draw[line] (stereo) -- (extrinsic);
+\draw[line] (imu) -- (extrinsic);
+\draw[line] (extrinsic) -- (camparam);
+\draw[line] (extrinsic) -- (imuparam);
+\draw[line] (camparam) |- (deploy);
+\draw[line] (imuparam) |- (deploy);
+
+\end{tikzpicture}

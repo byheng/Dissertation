@@ -1,0 +1,62 @@
+% 按原图重绘：对称 Hessian 更新逻辑流程
+\begin{tikzpicture}[
+    x=1mm,
+    y=1mm,
+    font=\rmfamily,
+    >=Stealth,
+    line/.style={->, thick},
+    data/.style={draw, rounded corners=2pt, align=center, minimum height=8mm, minimum width=24mm, fill=green!20},
+    proc/.style={draw, rounded corners=2pt, align=center, minimum height=8mm, minimum width=24mm, fill=blue!18},
+    ctrl/.style={draw, rounded corners=2pt, align=center, minimum height=7.5mm, minimum width=20mm, fill=orange!22},
+    note/.style={draw, rounded corners=2pt, align=center, minimum height=7mm, minimum width=18mm, fill=yellow!20},
+    io/.style={draw, rounded corners=2pt, align=center, minimum height=7.5mm, minimum width=22mm, fill=cyan!18}
+]
+
+% 顶部输入
+\node[data] (w) at (20,0) {$\mathbf{H}_{pm,ik}$};
+\node[data] (vinv) at (72,0) {$\mathbf{H}_{mm}^{-1}$};
+\node[proc] (mul1) at (46,-18) {$6\times3$
+矩阵乘法};
+\node[proc] (mout) at (46,-38) {$\mathbf{M}_{ik}=\mathbf{H}_{pm,ik}\mathbf{H}_{mm}^{-1}$};
+
+\draw[line] (w.south) -- (mul1.north west);
+\draw[line] (vinv.south) -- (mul1.north east);
+\draw[line] (mul1.south) -- (mout.north);
+
+% 左下梯度更新支路
+\node[data] (bm) at (8,-60) {$\mathbf{b}_{m,k}$};
+\node[proc] (mul2) at (28,-60) {$6\times3$
+向量乘法};
+\node[proc] (bupd) at (28,-82) {$\mathbf{b}_i\leftarrow \mathbf{b}_i-\mathbf{M}_{ik}\mathbf{b}_{m,k}$};
+\node[io] (bout) at (28,-104) {$\mathbf{b}_p$ 更新};
+
+\draw[line] (mout.south west) |- (mul2.north);
+\draw[line] (bm.east) -- (mul2.west);
+\draw[line] (mul2.south) -- (bupd.north);
+\draw[line] (bupd.south) -- (bout.north);
+
+% 右下Hessian更新支路
+\node[data] (wt) at (84,-60) {$\mathbf{H}_{pm,jk}^{\mathrm{T}}$};
+\node[proc] (mul3) at (64,-60) {$6\times6$
+子块乘法};
+\node[proc] (hupd) at (64,-82) {$\mathbf{H}_{pp,ij}\leftarrow \mathbf{H}_{pp,ij}-\mathbf{M}_{ik}\mathbf{H}_{pm,jk}^{\mathrm{T}}$};
+\node[note] (sym) at (90,-82) {仅计算上三角};
+\node[io] (hout) at (64,-104) {$\mathbf{H}_{pp}$ 更新};
+
+\draw[line] (mout.south east) |- (mul3.north);
+\draw[line] (wt.west) -- (mul3.east);
+\draw[line] (mul3.south) -- (hupd.north);
+\draw[line] (hupd.east) -- (sym.west);
+\draw[line] (hupd.south) -- (hout.north);
+
+% 外围分组框，尽量贴近原图布局
+\draw[dashed, thick, rounded corners=3pt] (2,8) rectangle (90,-46);
+\draw[dashed, thick, rounded corners=3pt] (2,-50) rectangle (40,-110);
+\draw[dashed, thick, rounded corners=3pt] (42,-50) rectangle (98,-110);
+
+% 分组说明
+\node[anchor=west, font=\small] at (4,5) {中间积生成};
+\node[anchor=west, font=\small] at (4,-53) {梯度更新路径};
+\node[anchor=west, font=\small] at (44,-53) {对称 Hessian 更新路径};
+
+\end{tikzpicture}

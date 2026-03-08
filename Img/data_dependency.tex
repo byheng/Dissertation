@@ -13,10 +13,10 @@
 ]
 
 % ========== 输入数据 ==========
-\node[data] (state_quat) at (0, 0) {state\_quat};
-\node[data] (state_pos) at (0, -1) {state\_pos};
-\node[data] (pts_pw) at (0, -2) {pts\_pw};
-\node[data] (intrin) at (0, -3) {intrin\_*};
+\node[data] (state_quat) at (0, 0) {状态姿态\\参数};
+\node[data] (state_pos) at (0, -1) {状态位置\\参数};
+\node[data] (pts_pw) at (0, -2) {路标点\\世界坐标};
+\node[data] (intrin) at (0, -3) {内参\\参数};
 
 \node[group_box, fit=(state_quat)(state_pos)(pts_pw)(intrin), inner sep=5pt] (input_box) {};
 \node[anchor=south, font=\scriptsize\bfseries] at (input_box.north) {输入数据};
@@ -53,14 +53,14 @@
 \draw[arrow] (jacobian) -- (jf);
 \draw[arrow] (jacobian) -- (dr_dpc);
 
-% ========== Hessian 累积 ==========
+% ========== Hessian 累积更新 ==========
 \node[group_box, minimum width=10cm, minimum height=1.8cm, fill=yellow!5] (hessian_box) at (7, -6.5) {};
-\node[anchor=north, font=\scriptsize\bfseries] at (7, -5.7) {Hessian 累积};
+\node[anchor=north, font=\scriptsize\bfseries] at (7, -5.7) {Hessian 累积更新};
 
-\node[output] (A) at (3.5, -6.8) {$\mathbf{A}$\\(累加)};
-\node[output] (b) at (5.5, -6.8) {$\mathbf{b}$\\(累加)};
-\node[output] (V) at (7.5, -6.8) {$\mathbf{V}$\\(累加)};
-\node[output] (g) at (9.5, -6.8) {$\mathbf{g}$\\(累加)};
+\node[output] (A) at (3.5, -6.8) {$\mathbf{H}_{pp}$\\(累加)};
+\node[output] (b) at (5.5, -6.8) {$\mathbf{b}_p$\\(累加)};
+\node[output] (V) at (7.5, -6.8) {$\mathbf{H}_{mm}$\\(累加)};
+\node[output] (g) at (9.5, -6.8) {$\mathbf{b}_m$\\(累加)};
 
 \draw[arrow] (jx) -- (A);
 \draw[arrow] (jx) -- (b);
@@ -69,13 +69,13 @@
 \draw[arrow] (jf) -- (g);
 \draw[arrow] (r.south) -- ++(0, -1) -| (g);
 
-% W 矩阵
-\node[output] (W) at (11.5, -6.8) {$\mathbf{W}$};
+% H_{pm} 矩阵
+\node[output] (W) at (11.5, -6.8) {$\mathbf{H}_{pm}$};
 \draw[arrow] (jx.south) -- ++(0, -0.5) -| (W);
 \draw[arrow] (jf.south) -- ++(0, -0.5) -| (W);
 
 % ========== Schur 消元 ==========
-\node[final] (schur) at (7, -8.5) {Schur消元\\需要 $\mathbf{V}^{-1}, \mathbf{W}, \mathbf{g}$ 全部就绪};
+\node[final] (schur) at (7, -8.5) {Schur消元\\等待 Hessian 累积完成};
 
 \draw[arrow] (A) -- (schur);
 \draw[arrow] (b) -- (schur);
@@ -84,19 +84,8 @@
 \draw[arrow] (W) -- (schur);
 
 % ========== 最终输出 ==========
-\node[final, fill=green!20] (output) at (7, -10) {$\mathbf{A}_{schur}, \mathbf{b}_{schur}$\\(输出)};
+\node[final, fill=green!20] (output) at (7, -10) {$\mathbf{S}, \mathbf{b}'_p$\\(输出)};
 
 \draw[arrow] (schur) -- (output);
-
-% ========== 关键依赖说明 ==========
-\node[align=left, font=\scriptsize] at (13, -7.5) {
-\textbf{关键依赖点:}\\
-1. Schur消元必须等待\\
-\quad Phase 2 完全结束\\
-2. 同一点的多个特征\\
-\quad 观测可并行处理\\
-3. 不同点之间在\\
-\quad Phase 2 完全独立
-};
 
 \end{tikzpicture}

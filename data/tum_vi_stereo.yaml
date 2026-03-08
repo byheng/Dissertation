@@ -1,0 +1,72 @@
+label: "TUM-VI 512x512 Official"
+id: 1c0dd291f147f4d4b0ecb13682f3923f
+cameras:
+- camera:
+    label: cam0
+    id: fisheye0_camera
+    line-delay-nanoseconds: 0
+    image_height: 512
+    image_width: 512
+    type: pinhole
+    intrinsics:
+      cols: 1
+      rows: 4
+      data: [190.97847715128717, 190.9733070521226, 254.93170605935475, 256.8974428996504]
+    distortion:
+      type: equidistant
+      parameters:
+        cols: 1
+        rows: 4
+        data: [0.0034823894022493434, 0.0007150348452162257, -0.0020532361418706202, 0.00020293673591811182]
+  T_B_C:
+    cols: 4
+    rows: 4
+    data: [-0.9995250378696747, 0.0075019185074052105, -0.02989013031643311, 0.04557483564969807,
+           0.029615343885863222, -0.03439736061393145, -0.9989693453701757, -0.07116180183799713,
+           -0.008522328211654741, -0.9993800792498835, 0.03415885127385607, -0.04468125411714442,
+           0.0, 0.0, 0.0, 1.0]
+- camera:
+    label: cam1
+    id: fisheye1_camera
+    line-delay-nanoseconds: 0
+    image_height: 512
+    image_width: 512
+    type: pinhole
+    intrinsics:
+      cols: 1
+      rows: 4
+      data: [190.44236969414825, 190.4344384721956, 252.59949716835982, 254.91723064636983]
+    distortion:
+      type: equidistant
+      parameters:
+        cols: 1
+        rows: 4
+        data: [0.0034003170790442797, 0.001766278153469831, -0.00266312569781606, 0.0003299517423931039]
+  T_B_C:
+    cols: 4
+    rows: 4
+    data: [-0.9995110484978582, 0.008104079263822521, -0.03019913624589137, -0.05545633914259545,
+           0.030299116376600623, 0.012511643720192518, -0.9994625667418546, -0.06925002164224774,
+           -0.007721883028733355, -0.9998888851620986, -0.012751072573941218, -0.047452864807513394,
+           0.0, 0.0, 0.0, 1.0]
+
+imu_params:
+  delay_imu_cam: 0.0
+  max_imu_delta_t: 0.01
+  acc_max: 176.0
+  omega_max: 17
+  sigma_omega_c: 0.004
+  sigma_acc_c: 0.08
+  sigma_omega_bias_c: 2.0e-6
+  sigma_acc_bias_c: 0.00004
+  sigma_integration: 0.0
+  g: 9.81007
+  imu_rate: 200
+
+imu_initialization:
+  velocity: [0.0, 0, 0.0]
+  omega_bias: [0.0, 0, 0.0]
+  acc_bias: [0.0, 0.0, 0.0]
+  velocity_sigma: 2.0
+  omega_bias_sigma: 0.01
+  acc_bias_sigma: 0.1

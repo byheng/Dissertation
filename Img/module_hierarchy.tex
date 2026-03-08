@@ -1,75 +1,76 @@
-% 模块层次结构图
-% 使用方法: 在主文档中 \input{figures/module_hierarchy.tex}
-% 字体: 中文使用宋体（继承文档设置），英文使用 Times New Roman（newtxtext）
-
+% 论文风格重绘：Schur Kernel 硬件模块层次结构
 \begin{tikzpicture}[
-    every node/.append style={font=\rmfamily},  % 确保使用衬线字体（Times/宋体）
-    level 1/.style={sibling distance=3.8cm, level distance=1.5cm},
-    level 2/.style={sibling distance=1.8cm, level distance=1.3cm},
-    level 3/.style={sibling distance=1.5cm, level distance=1.2cm},
-    module/.style={draw, thick, rounded corners=2pt, fill=blue!10, minimum width=1.8cm, minimum height=0.6cm, align=center, font=\tiny},
-    submodule/.style={draw, rounded corners=2pt, fill=green!10, minimum width=1.4cm, minimum height=0.5cm, align=center, font=\tiny},
-    leaf/.style={draw, rounded corners=2pt, fill=yellow!10, minimum width=1.2cm, minimum height=0.4cm, align=center, font=\tiny},
-    edge from parent/.style={draw, thick, ->,>=stealth},
+    every node/.append style={font=\rmfamily},
+    topbox/.style={draw, thick, rounded corners=4pt, align=center, minimum width=44mm, minimum height=10mm, fill=blue!18},
+    layerbox/.style={draw, thick, rounded corners=4pt, align=center, minimum width=38mm, minimum height=9mm, fill=green!12},
+    subbox/.style={draw, rounded corners=3pt, align=center, minimum width=26mm, minimum height=7mm, fill=yellow!12, font=\small},
+    line/.style={->, thick, >=Stealth}
 ]
 
-\node[module, minimum width=3cm, fill=blue!20] (top) {schur\_kernel\_top}
-    child {node[module] {axi\_lite\_slave}
-        child {node[submodule] {register\_file}}
-    }
-    child {node[module] {axi\_mm\_master}
-        child {node[submodule] {read\_engine}}
-        child {node[submodule] {write\_engine}}
-    }
-    child {node[module] {main\_fsm}}
-    child {node[module] {input\_buffer}
-        child {node[leaf] {state\_param\_buf}}
-        child {node[leaf] {sob\_buf}}
-        child {node[leaf] {pts\_pw\_buf}}
-        child {node[leaf] {feature\_uv\_buf}}
-    }
-    child {node[module] {coord\_transform\_unit}
-        child {node[leaf] {quat\_mult}}
-        child {node[leaf] {quat\_conj}}
-        child {node[leaf] {quat\_rotate}}
-        child {node[leaf] {quat\_to\_rotmat}}
-        child {node[leaf] {mat3x3\_mult}}
-    }
-    child {node[module] {jacobian\_unit}
-        child {node[leaf] {residual\_calc}}
-        child {node[leaf] {huber\_scale}}
-        child {node[leaf] {dr\_dpc\_calc}}
-        child {node[leaf] {dpc\_dpos\_calc}}
-        child {node[leaf] {jx\_calc}}
-        child {node[leaf] {jf\_calc}}
-    }
-    child {node[module] {hessian\_accum\_unit}
-        child {node[leaf] {jxT\_jx\_accum}}
-        child {node[leaf] {jfT\_jf\_accum}}
-        child {node[leaf] {jxT\_jf\_store}}
-        child {node[leaf] {jxT\_r\_accum}}
-        child {node[leaf] {jfT\_r\_accum}}
-    }
-    child {node[module] {intermediate\_buffer}
-        child {node[leaf] {tmp\_amtx\_buf}}
-        child {node[leaf] {tmp\_bvct\_buf}}
-        child {node[leaf] {tmp\_v\_buf}}
-        child {node[leaf] {tmp\_gv\_buf}}
-        child {node[leaf] {tmp\_w\_buf}}
-    }
-    child {node[module] {schur\_elim\_unit}
-        child {node[leaf] {mat3x3\_inv}}
-        child {node[leaf] {w\_vinv\_mult}}
-        child {node[leaf] {wvinv\_wT\_mult}}
-        child {node[leaf] {wvinv\_g\_mult}}
-        child {node[leaf] {a\_update}}
-    }
-    child {node[module] {output\_buffer}}
-    child {node[module] {fp64\_unit}
-        child {node[leaf] {fp64\_add[N]}}
-        child {node[leaf] {fp64\_mul[M]}}
-        child {node[leaf] {fp64\_div}}
-        child {node[leaf] {fp64\_sqrt}}
-    };
+% 顶层
+\node[topbox] (top) at (0,0) {Schur Kernel Top};
+
+% 第二层
+\node[layerbox] (ctrl) at (-6.2,-2.0) {控制与接口层};
+\node[layerbox] (jpe) at (0,-2.0) {Jacobi 处理层};
+\node[layerbox] (schur) at (6.2,-2.0) {Schur 消元层};
+
+\draw[line] (top) -- (ctrl);
+\draw[line] (top) -- (jpe);
+\draw[line] (top) -- (schur);
+
+% 第三层 控制与接口层
+\node[subbox] (axibus) at (-8.3,-4.1) {AXI 接口};
+\node[subbox] (fsm) at (-6.2,-4.1) {主控制 FSM};
+\node[subbox] (bufferio) at (-4.1,-4.1) {输入/输出缓冲};
+
+\draw[line] (ctrl) -- (axibus);
+\draw[line] (ctrl) -- (fsm);
+\draw[line] (ctrl) -- (bufferio);
+
+% 第三层 Jacobi 处理层
+\node[subbox] (sob) at (-2.6,-4.1) {SOB 解码与门控};
+\node[subbox] (coord) at (0,-4.1) {坐标变换单元};
+\node[subbox] (jac) at (2.6,-4.1) {残差与雅可比计算};
+\node[subbox] (hess) at (0,-5.6) {Hessian 累积更新};
+
+\draw[line] (jpe) -- (sob);
+\draw[line] (jpe) -- (coord);
+\draw[line] (jpe) -- (jac);
+\draw[line] (jpe) -- (hess);
+
+% 第三层 Schur 消元层
+\node[subbox] (inv) at (4.1,-4.1) {$\mathbf{H}_{mm}^{-1}$ 求解};
+\node[subbox] (mid) at (6.2,-4.1) {中间积计算};
+\node[subbox] (supd) at (8.3,-4.1) {舒尔补更新};
+\node[subbox] (out) at (6.2,-5.6) {$\mathbf{S},\ \mathbf{b}'_p$ 输出};
+
+\draw[line] (schur) -- (inv);
+\draw[line] (schur) -- (mid);
+\draw[line] (schur) -- (supd);
+\draw[line] (schur) -- (out);
+
+% 跨层主数据流
+\draw[line] (bufferio.east) -- ++(0.5,0) |- (sob.west);
+\draw[line] (sob.east) -- (coord.west);
+\draw[line] (coord.east) -- (jac.west);
+\draw[line] (jac.south) -- (hess.north);
+\draw[line] (hess.east) -- ++(0.7,0) -| (inv.south);
+\draw[line] (inv.east) -- (mid.west);
+\draw[line] (mid.east) -- (supd.west);
+\draw[line] (supd.south) -- (out.north);
+\draw[line] (out.west) -- ++(-0.7,0) |- (bufferio.south);
+
+% 控制流
+\draw[dashed, thick, ->] (fsm.east) -- ++(0.8,0) |- (coord.north);
+\draw[dashed, thick, ->] (fsm.east) -- ++(0.8,0) |- (supd.north);
+
+% 分组边框
+\draw[dashed, thick, rounded corners=4pt] (-9.4,-4.9) rectangle (-3.0,-1.35);
+\draw[dashed, thick, rounded corners=4pt] (-3.4,-6.3) rectangle (3.4,-1.35);
+\draw[dashed, thick, rounded corners=4pt] (3.0,-6.3) rectangle (9.4,-1.35);
+
+% 说明
+\node[font=\scriptsize, align=left, anchor=west] at (-9.2,-6.85) {实线：主数据流 \quad 虚线：控制流};
 
 \end{tikzpicture}

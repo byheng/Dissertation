@@ -1,0 +1,28 @@
+VINS-Mono: A Robust and Versatile Monocular Visual-Inertial State Estimator
+SVO: Fast Semi-Direct Monocular Visual Odometry
+A multi-state constraint Kalman filter for vision-aided inertial navigation
+ORB-SLAM: a Versatile and Accurate Monocular SLAM System
+Keyframe-based visual-inertial odometry using nonlinear optimization
+LSD-SLAM: Large-Scale Direct Monocular SLAM
+Robust Visual Inertial Odometry Using a Direct EKF-Based Method
+Orb-slam2: An open-source slam system for monocular, stereo, and rgb-d cameras
+ORB-SLAM3: An Accurate Open-Source Library for Visual, Visual-Inertial, and Multimap SLAM
+SchurVINS: Schur Complement-Based Lightweight Visual Inertial Navigation System
+Bundle adjustment—a modern synthesis
+g 2 o: A general framework for graph optimization
+Past, present, and future of simultaneous localization and mapping: Toward the robust-perception age
+MonoSLAM: Real-time single camera SLAM
+DTAM: Dense tracking and mapping in real-time
+RAFT: Recurrent all-pairs field transforms for optical flow
+Droid-slam: Deep visual slam for monocular, stereo, and rgb-d cameras
+eSLAM: An energy-efficient accelerator for real-time ORB-SLAM on FPGA platform
+SVO: Semi-Direct Visual Odometry for Monocular and Multicamera Systems
+On-Manifold Preintegration for Real-Time Visual-Inertial Odometry
+Simultaneous localization and mapping (SLAM): Part II
+Navion: A fully integrated energy-efficient visual-inertial odometry accelerator
+Machine learning for high-speed corner detection
+Distinctive image features from scale-invariant keypoints
+ORB: An efficient alternative to SIFT or SURF
+Random sample consensus: a paradigm for model fitting with applications to image analysis and automated cartography
+Parallel tracking and mapping for small AR workspaces
+Direct sparse odometry
