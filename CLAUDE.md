@@ -60,6 +60,12 @@ The dissertation focuses on an FPGA-based hardware/software co-designed SLAM bac
 - **Custom Styles**: Add user-defined commands to `Style/artracom.sty` or directly in `Thesis.tex`.
 - **Paths**: Use relative paths. The build script sets `TEXINPUTS` to search subdirectories recursively.
 - **Workflow**: Always compile from the root directory using the provided scripts to ensure paths are handled correctly.
+- **Figure Font Standards (MANDATORY for all generated figures)**:
+  - Chinese text: **SimSun (宋体)** — required for all Chinese labels, titles, and annotations
+  - English text and mathematical symbols: **Times New Roman** — required for all English/math content
+  - These two fonts must be explicitly requested when using generate-image or any figure generation tool
+  - This applies to all diagrams in `Img/` directory
+
 - **Mathematical Symbols (Strict Compliance with Small Paper)**:
   - Hessian block matrices: $\mathbf{H}_{pp}, \mathbf{H}_{pm}, \mathbf{H}_{pm}^{\mathrm{T}}, \mathbf{H}_{mm}$ (subscripts: $pp, pm, mm$ without \text).
   - State increments: $\Delta\mathbf{X}$ and $\Delta\mathbf{X}_p$ (X must be **bold and uppercase**).
