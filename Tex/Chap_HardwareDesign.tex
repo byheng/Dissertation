@@ -424,13 +424,12 @@ C_{13} & C_{23} & C_{33}
     \item \textbf{流水化执行}：求逆逻辑内部被划分为五个子阶段，关键路径延迟由最长的除法器（57 拍）主导；时分调度与 FIFO 缓存机制使模块支持背靠背连续求逆请求，吞吐率不受长延迟运算单元制约。
 \end{itemize}
 
-\subsection{对称 Hessian 更新逻辑}
+\subsection{梯度向量与 Hessian 舒尔补更新逻辑}
 
-对称 Hessian 更新对应式 $\mathbf{H}_{pp} \leftarrow \mathbf{H}_{pp} - \mathbf{H}_{pm}\mathbf{H}_{mm}^{-1}\mathbf{H}_{pm}^{\top}$ 的核心计算，其完整流程如图~\ref{fig:hessian_update}~所示。对于每个路标点 $k$，系统首先求得对应的 $3\times3$ 路标子块逆矩阵 $\mathbf{H}_{mm}^{-1}$，随后针对所有与该路标点存在观测关联的状态 $i$，计算中间矩阵
+对称 Hessian 更新对应式 $\mathbf{H}_{pp} \leftarrow \mathbf{H}_{pp} - \mathbf{H}_{pm}\mathbf{H}_{mm}^{-1}\mathbf{H}_{pm}^{\top}$ 的核心计算，其完整流程如图~\ref{fig:hessian_update}~所示。对于每个路标点 $k$，系统首先求得对应的 $3\times3$ 路标子块逆矩阵 $\mathbf{H}_{mm,k}^{-1}$，随后针对所有与该路标点存在观测关联的状态 $i$，计算中间矩阵
 \begin{equation}
-\mathbf{M}_{ik}=\mathbf{H}_{pm,ik}\mathbf{H}_{mm}^{-1}.
+\mathbf{M}_{ik}=\mathbf{H}_{pm,ik}\mathbf{H}_{mm,k}^{-1}.
 \end{equation}
-由于 $\mathbf{H}_{pm,ik}$ 为 $6\times3$ 子块，而 $\mathbf{H}_{mm}^{-1}$ 为 $3\times3$ 对称矩阵，该乘法可按列--行分解为若干规则的部分积，再经加法树归并得到完整结果。这样既保持了运算结构的规整性，又便于在硬件流水线中实现稳定调度，并为后续梯度与 Hessian 更新提供可复用的中间结果。
 
 \begin{figure}[htbp]
     \centering
@@ -439,25 +438,33 @@ C_{13} & C_{23} & C_{33}
     \label{fig:hessian_update}
 \end{figure}
 
-梯度向量更新沿用相同的中间积复用思路。对每个有效状态 $i$，先计算
+\textbf{中间积计算的硬件分解。}$\mathbf{H}_{pm,ik}$ 为 $6\times3$ 子块，$\mathbf{H}_{mm,k}^{-1}$ 为 $3\times3$ 对称矩阵，其乘积 $\mathbf{M}_{ik}\in\mathbb{R}^{6\times3}$ 共含 18 个元素，每个元素为一组 3 次乘加（MAC）运算。硬件将该乘法按"输出行优先"方式分解：对 $\mathbf{H}_{pm,ik}$ 的每一行 $\mathbf{r}_s^{\top}\in\mathbb{R}^{1\times3}$（$s=0,\ldots,5$），计算
+\begin{equation}
+\mathbf{m}_s^{\top} = \mathbf{r}_s^{\top}\,\mathbf{H}_{mm,k}^{-1},
+\end{equation}
+得到 $\mathbf{M}_{ik}$ 的第 $s$ 行。由于 $\mathbf{H}_{mm,k}^{-1}$ 对称，每行仅需 6 次独立乘法和 3 次加法，6 行合计 36 次乘法、18 次加法。硬件采用 3 路并行乘法器阵列，每拍完成一行的三列点积，经 6 拍流水完成整块 $\mathbf{M}_{ik}$ 的输出，结果暂存于片上寄存器文件，以备同一路标点 $k$ 的所有状态对复用。
+
+\textbf{梯度向量更新。}中间积 $\mathbf{M}_{ik}$ 生成后，硬件立即复用该结果完成梯度项的减法累加。对每个有效状态 $i$，先计算向量积
 \begin{equation}
 \mathbf{M}_{ik}\mathbf{b}_{m,k},
 \end{equation}
 再执行
 \begin{equation}
-\mathbf{b}_i \leftarrow \mathbf{b}_i - \mathbf{M}_{ik}\mathbf{b}_{m,k}
+\mathbf{b}_i \leftarrow \mathbf{b}_i - \mathbf{M}_{ik}\mathbf{b}_{m,k}.
 \end{equation}
-的减法累加。由于该运算本质上是 $6\times3$ 与 $3\times1$ 的矩阵向量乘法，其数据通路可与中间积计算阶段保持一致，通过规则化的乘加级联完成，并直接写回对应状态的梯度项。这样可以避免额外的中间缓冲，提高数据复用效率，同时降低片上存储访问压力。
+$\mathbf{b}_{m,k}\in\mathbb{R}^{3\times1}$ 与 $\mathbf{M}_{ik}\in\mathbb{R}^{6\times3}$ 的矩阵向量乘法本质上是 6 组独立的 3 维点积，共需 18 次乘法和 12 次加法。其数据通路与中间积计算阶段共享同一组乘法器，仅通过操作数多路选择器切换输入源，无需额外的浮点计算单元。结果按行写回对应状态 $i$ 的梯度缓冲，利用单端口 BRAM 的读-改-写（RMW）时序完成累加，写回地址由状态索引 $i$ 和 SOB 掩码联合生成。
 
-Hessian 更新则围绕状态对 $(i,j)$ 的舒尔补增量展开。对于所有同时观测到路标点 $k$ 的状态对 $(i,j)$，系统计算
+\textbf{Hessian 子块更新与上三角优化。}Hessian 更新围绕状态对 $(i,j)$ 展开。对所有同时观测到路标点 $k$ 的状态对（即 SOB 掩码中位 $i$ 与位 $j$ 均置位的组合），系统复用已缓存的 $\mathbf{M}_{ik}$，计算舒尔补增量
 \begin{equation}
-\Delta \mathbf{H}_{pp,ij}=\mathbf{M}_{ik}\mathbf{H}_{pm,jk}^{\mathrm{T}},
+\Delta \mathbf{H}_{pp,ij}=\mathbf{M}_{ik}\,\mathbf{H}_{pm,jk}^{\mathrm{T}},
 \end{equation}
 并执行
 \begin{equation}
 \mathbf{H}_{pp,ij} \leftarrow \mathbf{H}_{pp,ij} - \Delta \mathbf{H}_{pp,ij}.
 \end{equation}
-其中，$\Delta \mathbf{H}_{pp,ij}$ 为 $6\times6$ 子块，可由若干组规则的部分积经加法归并后得到。由于 $\mathbf{H}_{pp}$ 本身为对称矩阵，硬件仅需对上三角块进行计算与写回，另一半由对称关系恢复，从而有效减少乘加次数、写端口占用以及片上存储带宽压力。
+$\Delta \mathbf{H}_{pp,ij}\in\mathbb{R}^{6\times6}$ 由 $\mathbf{M}_{ik}\in\mathbb{R}^{6\times3}$ 与 $\mathbf{H}_{pm,jk}^{\mathrm{T}}\in\mathbb{R}^{3\times6}$ 相乘得到，等价于 36 个独立的 3 维点积。考虑到 $\mathbf{H}_{pp}$ 的对称性，当 $i\neq j$ 时 $\Delta\mathbf{H}_{pp,ij}=\Delta\mathbf{H}_{pp,ji}^{\top}$ 成立，因此硬件仅对满足 $i\leq j$ 的状态对计算上三角块（共 $\binom{N_{\mathrm{obs}}}{2}+N_{\mathrm{obs}}$ 个有效块），下三角块由对称关系在读取时镜像恢复，无需额外写回。这一优化使乘加次数减少约 50\%，同时将 BRAM 写端口占用降低至原来的一半。对于对角块（$i=j$），$\Delta\mathbf{H}_{pp,ii}=\mathbf{M}_{ik}\mathbf{H}_{pm,ik}^{\top}$ 仍为对称矩阵，硬件进一步仅计算其上三角的 21 个独立元素，节省约 42\% 的对角块计算量。
+
+\textbf{硬件调度与流水吞吐。}整个更新过程由主控 FSM 与 SOB 解码器协同调度。对每个路标点 $k$，调度顺序为：（1）触发 $\mathbf{H}_{mm,k}^{-1}$ 求逆（已在前一节介绍）；（2）按 SOB 掩码逐一枚举有效状态 $i$，完成 $\mathbf{M}_{ik}$ 计算并缓存；（3）在（2）的同一流水线延续中完成梯度 $\mathbf{b}_i$ 的更新；（4）枚举 $i\leq j$ 的状态对，读取 $\mathbf{H}_{pm,jk}$，完成 Hessian 子块的 RMW 累加。步骤（2）与（3）高度重叠——$\mathbf{M}_{ik}$ 输出后可立即驱动梯度乘法器，两者之间仅需 1 拍的流水寄存延迟。步骤（4）因需读取不同状态的 $\mathbf{H}_{pm,jk}$，通过 BRAM 双端口轮询实现读写分离，避免同端口 RMW 竞争。
 
 整体而言，该更新过程可划分为三类相互衔接的运算：$\mathbf{H}_{mm}^{-1}$ 求解、$\mathbf{H}_{pm}\mathbf{H}_{mm}^{-1}$ 中间积生成，以及 $\mathbf{H}_{pp}$ 与 $\mathbf{b}_p$ 的减法累加。在整个流程中，SOB 编码持续驱动硬件状态机，通过扫描各路标点的掩码位，仅对有效的状态-路标关联触发上述三类计算，跳过所有零子块对应的无效路径，确保总计算量严格正比于实际有效观测数。结合中间结果复用、对称块只计算一次以及稀疏关联按需访存等机制，舒尔补更新能够在嵌入式资源约束下维持较高吞吐率和稳定时延。
 
