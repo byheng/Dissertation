@@ -8,16 +8,18 @@ import sys
 import argparse
 import requests
 import json
+import re
 from typing import Optional
 
 
-def fetch_bibtex_crossref(title: str, doi: Optional[str] = None) -> Optional[str]:
+def fetch_bibtex_crossref(title: str, doi: Optional[str] = None, show_abstract: bool = False) -> Optional[str]:
     """
     从 CrossRef 查询文献的 BibTeX 格式引用
 
     Args:
         title: 文献标题
         doi: DOI（可选，如果提供则直接查询）
+        show_abstract: 是否显示摘要
 
     Returns:
         BibTeX 格式的引用字符串，如果未找到则返回 None
@@ -45,7 +47,7 @@ def fetch_bibtex_crossref(title: str, doi: Optional[str] = None) -> Optional[str
         params = {
             'query.title': title,
             'rows': 1,
-            'select': 'DOI,title,author,published-print,container-title,volume,issue,page'
+            'select': 'DOI,title,author,published-print,container-title,volume,issue,page,abstract'
         }
 
         response = requests.get(search_url, params=params, timeout=10)
@@ -94,6 +96,16 @@ def fetch_bibtex_crossref(title: str, doi: Optional[str] = None) -> Optional[str
         if venue:
             print(f"  来源: {venue[0]}")
 
+        # 显示摘要（如果请求）
+        if show_abstract:
+            abstract = item.get('abstract')
+            if abstract:
+                # 去掉 JATS XML 标签（如 <jats:p>）
+                abstract_clean = re.sub(r'<[^>]+>', '', abstract)
+                print(f"  摘要: {abstract_clean}")
+            else:
+                print("  摘要: [CrossRef 无摘要信息，请访问出版社官网查看]")
+
         print(f"  DOI: {found_doi}")
         print("=" * 60)
 
@@ -129,6 +141,7 @@ def main():
   python3 fetch_bibtex_crossref.py "ORB-SLAM: a Versatile and Accurate Monocular SLAM System"
   python3 fetch_bibtex_crossref.py --doi "10.1109/TRO.2015.2463671"
   python3 fetch_bibtex_crossref.py -o output.bib "SLAM Survey"
+  python3 fetch_bibtex_crossref.py -a "Deep Learning"  # 显示摘要
 
 优势:
   - 无需科学上网
@@ -139,6 +152,7 @@ def main():
 注意:
   - 仅支持有 DOI 的文献（大多数学术论文都有）
   - 对于会议论文和期刊论文效果最好
+  - 摘要信息取决于出版社是否向 CrossRef 提供
         """
     )
 
@@ -160,6 +174,12 @@ def main():
         default=None
     )
 
+    parser.add_argument(
+        "-a", "--abstract",
+        action="store_true",
+        help="显示文献摘要"
+    )
+
     args = parser.parse_args()
 
     # 验证参数
@@ -167,7 +187,7 @@ def main():
         parser.error("必须提供标题或 DOI")
 
     # 查询 BibTeX
-    bibtex = fetch_bibtex_crossref(args.title or "", doi=args.doi)
+    bibtex = fetch_bibtex_crossref(args.title or "", doi=args.doi, show_abstract=args.abstract)
 
     if bibtex:
         print("\nBibTeX 引用:")

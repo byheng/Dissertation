@@ -1,31 +1,90 @@
 \intobmk\chapter*{符号列表}% 显示在书签但不显示在目录
 
-\section*{字符}
-\nomenclatureitem[\textbf{Unit}]{\textbf{Symbol}}{\textbf{Description}}
-\nomenclatureitem[$\Unit{m^{2} \cdot s^{-2} \cdot K^{-1}}$]{$R$}{the gas constant}
-\nomenclatureitem[$\Unit{m^{2} \cdot s^{-2} \cdot K^{-1}}$]{$C_v$}{specific heat capacity at constant volume}
-\nomenclatureitem[$\Unit{m^{2} \cdot s^{-2} \cdot K^{-1}}$]{$C_p$}{specific heat capacity at constant pressure}
-\nomenclatureitem[$\Unit{m^{2} \cdot s^{-2}}$]{$E$}{specific total energy}
-\nomenclatureitem[$\Unit{m^{2} \cdot s^{-2}}$]{$e$}{specific internal energy}
-\nomenclatureitem[$\Unit{m^{2} \cdot s^{-2}}$]{$h_T$}{specific total enthalpy}
-\nomenclatureitem[$\Unit{m^{2} \cdot s^{-2}}$]{$h$}{specific enthalpy}
-\nomenclatureitem[$\Unit{kg \cdot m \cdot s^{-3} \cdot K^{-1}}$]{$k$}{thermal conductivity}
-\nomenclatureitem[$\Unit{kg \cdot m^{-1} \cdot s^{-2}}$]{$S_{ij}$}{deviatoric stress tensor}
-\nomenclatureitem[$\Unit{kg \cdot m^{-1} \cdot s^{-2}}$]{$\tau_{ij}$}{viscous stress tensor}
-\nomenclatureitem[$\Unit{1}$]{$\delta_{ij}$}{Kronecker tensor}
-\nomenclatureitem[$\Unit{1}$]{$I_{ij}$}{identity tensor}
+\section*{矩阵与向量}
+\nomenclatureitem{\textbf{符号}}{\textbf{描述}}
+\nomenclatureitem{$\mathbf{H}$}{海森矩阵（Hessian matrix）}
+\nomenclatureitem{$\mathbf{H}_{pp}$}{海森矩阵中位姿--位姿块}
+\nomenclatureitem{$\mathbf{H}_{pm}$}{海森矩阵中位姿--路标点交叉块}
+\nomenclatureitem{$\mathbf{H}_{mm}$}{海森矩阵中路标点--路标点对角块}
+\nomenclatureitem{$\mathbf{S}$}{舒尔补矩阵（Schur complement）}
+\nomenclatureitem{$\mathbf{J}$}{雅可比矩阵（Jacobian matrix）}
+\nomenclatureitem{$\mathbf{b}$}{梯度向量（右端项）}
+\nomenclatureitem{$\mathbf{b}_p$, $\mathbf{b}_m$}{分别对应位姿和路标点的梯度子向量}
+\nomenclatureitem{$\mathbf{R}$}{旋转矩阵}
+\nomenclatureitem{$\mathbf{T}$}{齐次变换矩阵（位姿）}
+\nomenclatureitem{$\mathbf{t}$}{平移向量}
+\nomenclatureitem{$\mathbf{q}$}{单位四元数}
+\nomenclatureitem{$\mathbf{K}$}{相机内参矩阵}
+\nomenclatureitem{$\mathbf{D}$}{畸变系数向量}
+\nomenclatureitem{$\mathbf{P}$}{位姿矩阵或估计位姿序列}
+\nomenclatureitem{$\mathbf{Q}$}{真实位姿序列（真值）}
+\nomenclatureitem{$\mathbf{I}$}{单位矩阵}
+\nomenclatureitem{$\mathbf{F}$}{状态转移矩阵}
+
+\section*{状态与观测}
+\nomenclatureitem{\textbf{符号}}{\textbf{描述}}
+\nomenclatureitem{$\mathbf{x}$}{系统状态向量}
+\nomenclatureitem{$\Delta\mathbf{X}$}{状态增量向量}
+\nomenclatureitem{$\Delta\mathbf{X}_p$}{位姿状态增量}
+\nomenclatureitem{$\mathbf{r}$}{残差向量}
+\nomenclatureitem{$\mathbf{u}$}{像素坐标观测值}
+\nomenclatureitem{$\mathbf{p}$}{三维路标点坐标}
+\nomenclatureitem{$\mathbf{v}$}{速度向量}
+\nomenclatureitem{$\mathbf{a}$}{加速度计测量值}
+\nomenclatureitem{$\mathbf{g}$}{重力向量}
+\nomenclatureitem{$\mathbf{z}$}{观测量}
+\nomenclatureitem{$\mathbf{e}$}{误差向量}
+
+\section*{标量符号}
+\nomenclatureitem{\textbf{符号}}{\textbf{描述}}
+\nomenclatureitem{$f_x$, $f_y$}{相机焦距（水平与垂直方向）}
+\nomenclatureitem{$c_x$, $c_y$}{相机主点坐标}
+\nomenclatureitem{$k_1$, $k_2$}{径向畸变系数}
+\nomenclatureitem{$p_1$, $p_2$}{切向畸变系数}
+\nomenclatureitem{$\rho$}{稀疏率}
+\nomenclatureitem{$\sigma$}{噪声密度或标准差}
+\nomenclatureitem{$\tau$}{积分时间（Allan 方差分析中的簇时间）}
+\nomenclatureitem{$\lambda$}{Levenberg--Marquardt 阻尼因子}
+\nomenclatureitem{$N_p$}{路标点数量}
+\nomenclatureitem{$N_s$}{滑动窗口内的状态帧数}
+\nomenclatureitem{$N_m$}{路标点总维度}
+\nomenclatureitem{$T$}{计算延迟（处理时间）}
+\nomenclatureitem{$P$}{动态功耗}
+\nomenclatureitem{$E$}{单帧能耗}
 
 \section*{算子}
-\nomenclatureitem{\textbf{Symbol}}{\textbf{Description}}
-\nomenclatureitem{$\Delta$}{difference}
-\nomenclatureitem{$\nabla$}{gradient operator}
-\nomenclatureitem{$\delta^{\pm}$}{upwind-biased interpolation scheme}
+\nomenclatureitem{\textbf{符号}}{\textbf{描述}}
+\nomenclatureitem{$\Delta$}{差分 / 增量算子}
+\nomenclatureitem{$\|\cdot\|$}{欧氏范数}
+\nomenclatureitem{$(\cdot)^{-1}$}{矩阵求逆}
+\nomenclatureitem{$(\cdot)^{\mathrm{T}}$}{矩阵转置}
+\nomenclatureitem{$\pi(\cdot)$}{相机投影函数}
 
 \section*{缩写}
-\nomenclatureitem{CFD}{Computational Fluid Dynamics}
-\nomenclatureitem{CFL}{Courant-Friedrichs-Lewy}
-\nomenclatureitem{EOS}{Equation of State}
-\nomenclatureitem{JWL}{Jones-Wilkins-Lee}
-\nomenclatureitem{WENO}{Weighted Essentially Non-oscillatory}
-\nomenclatureitem{ZND}{Zel'dovich-von Neumann-Doering}
+\nomenclatureitem{\textbf{缩写}}{\textbf{全称}}
+\nomenclatureitem{SLAM}{Simultaneous Localization and Mapping，同时定位与建图}
+\nomenclatureitem{VIO}{Visual-Inertial Odometry，视觉惯性里程计}
+\nomenclatureitem{BA}{Bundle Adjustment，光束法平差}
+\nomenclatureitem{EKF}{Extended Kalman Filter，扩展卡尔曼滤波}
+\nomenclatureitem{IMU}{Inertial Measurement Unit，惯性测量单元}
+\nomenclatureitem{FPGA}{Field-Programmable Gate Array，现场可编程门阵列}
+\nomenclatureitem{SoC}{System on Chip，片上系统}
+\nomenclatureitem{PS}{Processing System，处理系统（ARM 端）}
+\nomenclatureitem{PL}{Programmable Logic，可编程逻辑（FPGA 端）}
+\nomenclatureitem{SOB}{Sparse Observation Bitmap，稀疏观测位图}
+\nomenclatureitem{DMA}{Direct Memory Access，直接存储器访问}
+\nomenclatureitem{AXI}{Advanced eXtensible Interface，高级可扩展接口}
+\nomenclatureitem{BRAM}{Block RAM，块随机存储器}
+\nomenclatureitem{LUT}{Look-Up Table，查找表}
+\nomenclatureitem{DSP}{Digital Signal Processor，数字信号处理单元}
+\nomenclatureitem{FF}{Flip-Flop，触发器}
+\nomenclatureitem{FIFO}{First In First Out，先进先出缓冲}
+\nomenclatureitem{NLS}{Nonlinear Least Squares，非线性最小二乘}
+\nomenclatureitem{GN}{Gauss--Newton，高斯--牛顿法}
+\nomenclatureitem{LM}{Levenberg--Marquardt，列文伯格--马夸尔特法}
+\nomenclatureitem{MSCKF}{Multi-State Constraint Kalman Filter，多状态约束卡尔曼滤波}
+\nomenclatureitem{ATE}{Absolute Trajectory Error，绝对轨迹误差}
+\nomenclatureitem{RMSE}{Root Mean Square Error，均方根误差}
+\nomenclatureitem{FPS}{Frames Per Second，帧率}
+\nomenclatureitem{DoF}{Degree of Freedom，自由度}
 

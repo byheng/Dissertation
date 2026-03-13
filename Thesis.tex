@@ -23,6 +23,12 @@
 %---------------------------------------------------------------------------%
 \usepackage{caption}
 \usepackage[super,numbers, list,table,math,tikz]{Style/artratex}
+% 放宽浮动体比例约束，减少图片/表格导致的大块留白
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.8}
+\renewcommand{\textfraction}{0.07}
+\renewcommand{\floatpagefraction}{0.8}
+\setlength{\textfloatsep}{10pt plus 2pt minus 2pt}
 %- usage: \usepackage[option1,option2,...,optionN]{artratex}
 %- Multiple optional arguments:
 %- [bibtex|biber]% set bibliography processor and package
@@ -97,10 +103,9 @@
     \printbibliography% bibliography
 }
 \cleardoublepage%
-\appendix% initialize the environment
-\input{Tex/Appendix}% appendix content
-
-\thispagestyle{appendixheader}
+%\appendix% initialize the environment
+%\input{Tex/Appendix}% appendix content
+%\thispagestyle{appendixheader}
 \backmatter% initialize the environment
 \input{Tex/Backmatter}% other information
 \end{document}
