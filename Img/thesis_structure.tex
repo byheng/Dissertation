@@ -1,0 +1,125 @@
+% thesis_structure.tex —— 论文结构安排横向树形图
+\begin{tikzpicture}[
+    >=Stealth,
+    every node/.style={font=\rmfamily\footnotesize},
+    % 根节点
+    root/.style={
+        draw, rounded corners=4pt, thick, align=center,
+        fill=blue!18, minimum width=24mm, minimum height=14mm,
+        text width=22mm
+    },
+    % 章节节点
+    chap/.style={
+        draw, rounded corners=3pt, thick, align=center,
+        fill=blue!8, minimum width=34mm, minimum height=8mm,
+        text width=32mm, font=\rmfamily\footnotesize
+    },
+    % 内容叶节点
+    leaf/.style={
+        draw, rounded corners=2pt, thin, align=left,
+        fill=gray!6, minimum width=42mm, minimum height=6mm,
+        text width=40mm, font=\rmfamily\scriptsize
+    },
+    % 连线
+    edge/.style={-, thick, gray!70},
+    branch/.style={-, thin, gray!50},
+]
+
+%% ── 根节点 ───────────────────────────────────────────
+\node[root] (root) at (0, 0)
+    {\textbf{面向嵌入式异构}\\[-1pt]\textbf{系统的 SLAM 算法}\\[-1pt]\textbf{软硬件协同加速设计}};
+
+%% ── 章节节点（纵向均布，列 x=4.0cm）───────────────────
+\def\cs{2.2}  % 章间距
+
+\node[chap] (c1) at (4.0,  5*\cs/2) {\textbf{第一章}\ \ 绪\ \ 论};
+\node[chap] (c2) at (4.0,  3*\cs/2) {\textbf{第二章}\ \ 算法理论基础};
+\node[chap] (c3) at (4.0,  1*\cs/2) {\textbf{第三章}\ \ 系统架构总体设计};
+\node[chap] (c4) at (4.0, -1*\cs/2) {\textbf{第四章}\ \ 硬件加速器详细设计};
+\node[chap] (c5) at (4.0, -3*\cs/2) {\textbf{第五章}\ \ 系统实现与实验评价};
+\node[chap] (c6) at (4.0, -5*\cs/2) {\textbf{第六章}\ \ 总结与展望};
+
+%% ── 根 → 章节连线（主干 + 纵向脊 + 水平分支）──────────
+\def\rx{2.0}  % 根节点主干分叉脊的 x 坐标
+
+\draw[edge] (root.east) -- (\rx, 0);
+\draw[edge] (\rx, 5.5) -- (\rx, -5.5);
+\foreach \c/\cy in {c1/5.5, c2/3.3, c3/1.1, c4/-1.1, c5/-3.3, c6/-5.5}{
+    \draw[edge] (\rx, \cy) -- (\c.west);
+}
+
+%% ── 内容叶节点（列 x=9.2cm） ──────────────────────────
+\def\lx{9.2}
+
+% 第一章
+\node[leaf] (l1a) at (\lx,  5*\cs/2 + 0.65) {研究背景与应用意义};
+\node[leaf] (l1b) at (\lx,  5*\cs/2 - 0.00) {国内外研究现状综述};
+\node[leaf] (l1c) at (\lx,  5*\cs/2 - 0.65) {本文主要贡献与论文结构};
+
+% 第二章
+\node[leaf] (l2a) at (\lx,  3*\cs/2 + 0.65) {相机模型与视觉前端处理};
+\node[leaf] (l2b) at (\lx,  3*\cs/2 - 0.00) {IMU 预积分与紧耦合状态估计};
+\node[leaf] (l2c) at (\lx,  3*\cs/2 - 0.65) {BA 稀疏性、舒尔补与 EKF 更新};
+
+% 第三章
+\node[leaf] (l3a) at (\lx,  1*\cs/2 + 0.50) {设计目标与软硬件功能划分};
+\node[leaf] (l3b) at (\lx,  1*\cs/2 - 0.50) {AXI 通信协议与双缓冲调度};
+
+% 第四章
+\node[leaf] (l4a) at (\lx, -1*\cs/2 + 0.65) {五级深度流水线雅可比计算模块};
+\node[leaf] (l4b) at (\lx, -1*\cs/2 - 0.00) {SOB 编码与两级动态门控机制};
+\node[leaf] (l4c) at (\lx, -1*\cs/2 - 0.65) {3$\times$3 并行 Schur 消元核心};
+
+% 第五章
+\node[leaf] (l5a) at (\lx, -3*\cs/2 + 0.65) {传感器标定与实验环境搭建};
+\node[leaf] (l5b) at (\lx, -3*\cs/2 - 0.00) {轨迹精度与计算延迟分析};
+\node[leaf] (l5c) at (\lx, -3*\cs/2 - 0.65) {资源利用率、能效与 SOB 优化};
+
+% 第六章
+\node[leaf] (l6a) at (\lx, -5*\cs/2 + 0.40) {全文总结与主要创新点};
+\node[leaf] (l6b) at (\lx, -5*\cs/2 - 0.40) {后续工作展望};
+
+%% ── 章节 → 叶节点连线（主干 + 垂直脊 + 水平分支）────────
+\def\mx{6.8}  % 垂直分支脊的 x 坐标
+
+% 第一章：y=5.5，叶偏移 ±0.65、0
+\draw[branch] (c1.east) -- (\mx, 5.5);
+\draw[branch] (\mx, 5.5+0.65) -- (\mx, 5.5-0.65);
+\draw[branch] (\mx, 5.5+0.65) -- (l1a.west);
+\draw[branch] (\mx, 5.5+0.00) -- (l1b.west);
+\draw[branch] (\mx, 5.5-0.65) -- (l1c.west);
+
+% 第二章：y=3.3，叶偏移 ±0.65、0
+\draw[branch] (c2.east) -- (\mx, 3.3);
+\draw[branch] (\mx, 3.3+0.65) -- (\mx, 3.3-0.65);
+\draw[branch] (\mx, 3.3+0.65) -- (l2a.west);
+\draw[branch] (\mx, 3.3+0.00) -- (l2b.west);
+\draw[branch] (\mx, 3.3-0.65) -- (l2c.west);
+
+% 第三章：y=1.1，叶偏移 ±0.50
+\draw[branch] (c3.east) -- (\mx, 1.1);
+\draw[branch] (\mx, 1.1+0.50) -- (\mx, 1.1-0.50);
+\draw[branch] (\mx, 1.1+0.50) -- (l3a.west);
+\draw[branch] (\mx, 1.1-0.50) -- (l3b.west);
+
+% 第四章：y=-1.1，叶偏移 ±0.65、0
+\draw[branch] (c4.east) -- (\mx, -1.1);
+\draw[branch] (\mx, -1.1+0.65) -- (\mx, -1.1-0.65);
+\draw[branch] (\mx, -1.1+0.65) -- (l4a.west);
+\draw[branch] (\mx, -1.1+0.00) -- (l4b.west);
+\draw[branch] (\mx, -1.1-0.65) -- (l4c.west);
+
+% 第五章：y=-3.3，叶偏移 ±0.65、0
+\draw[branch] (c5.east) -- (\mx, -3.3);
+\draw[branch] (\mx, -3.3+0.65) -- (\mx, -3.3-0.65);
+\draw[branch] (\mx, -3.3+0.65) -- (l5a.west);
+\draw[branch] (\mx, -3.3+0.00) -- (l5b.west);
+\draw[branch] (\mx, -3.3-0.65) -- (l5c.west);
+
+% 第六章：y=-5.5，叶偏移 ±0.40
+\draw[branch] (c6.east) -- (\mx, -5.5);
+\draw[branch] (\mx, -5.5+0.40) -- (\mx, -5.5-0.40);
+\draw[branch] (\mx, -5.5+0.40) -- (l6a.west);
+\draw[branch] (\mx, -5.5-0.40) -- (l6b.west);
+
+\end{tikzpicture}

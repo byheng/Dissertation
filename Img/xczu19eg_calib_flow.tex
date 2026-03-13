@@ -1,30 +1,51 @@
 \begin{tikzpicture}[
-    node distance=8mm and 10mm,
+    node distance=8mm and 16mm,
     >=Stealth,
     every node/.style={font=\rmfamily},
-    proc/.style={draw, rounded corners=3pt, thick, align=center, minimum width=30mm, minimum height=8mm, fill=blue!8},
-    data/.style={draw, rounded corners=3pt, thick, align=center, minimum width=26mm, minimum height=7mm, fill=green!8},
-    note/.style={draw, rounded corners=3pt, thick, align=left, minimum width=42mm, minimum height=8mm, fill=yellow!10},
-    line/.style={->, thick}
+    proc/.style={draw, rounded corners=3pt, thick, align=center,
+                 minimum width=36mm, minimum height=9mm, fill=blue!8},
+    data/.style={draw, rounded corners=3pt, thick, align=center,
+                 minimum width=32mm, minimum height=8mm, fill=green!8},
+    note/.style={draw, rounded corners=3pt, thick, align=left,
+                 minimum width=80mm, minimum height=8mm, fill=yellow!10},
+    line/.style={->, thick},
+    label/.style={font=\rmfamily\small, align=center, midway, right=1mm}
 ]
 
-\node[proc] (collect) {传感器安装与\\时间同步配置};
-\node[data, below=of collect] (capture) {采集双目图像与\\IMU 原始数据};
-\node[proc, below left=12mm and 22mm of capture] (stereo) {双目相机标定\\求解内参与畸变参数};
-\node[proc, below right=12mm and 22mm of capture] (imu) {IMU Allan 方差分析\\估计噪声参数};
-\node[data, below=18mm of capture] (extrinsic) {相机--IMU 外参与\\同步一致性验证};
-\node[proc, below left=12mm and 22mm of extrinsic] (camparam) {生成双目相机\\标定参数};
-\node[proc, below right=12mm and 22mm of extrinsic] (imuparam) {生成 IMU 噪声\\模型参数};
-\node[note, below=18mm of extrinsic] (deploy) {系统部署使用：\\1.~图像去畸变与双目几何约束\\2.~IMU 预积分与噪声建模\\3.~后端优化权重配置};
+% ── 顶部：安装与配置 ──────────────────────────────────────────
+\node[proc] (setup) {传感器安装与时间同步配置};
 
-\draw[line] (collect) -- (capture);
-\draw[line] (capture) -- (stereo);
-\draw[line] (capture) -- (imu);
-\draw[line] (stereo) -- (extrinsic);
-\draw[line] (imu) -- (extrinsic);
-\draw[line] (extrinsic) -- (camparam);
-\draw[line] (extrinsic) -- (imuparam);
-\draw[line] (camparam) |- (deploy);
-\draw[line] (imuparam) |- (deploy);
+% ── 两路数据采集（并排） ──────────────────────────────────────
+\node[data, below left=12mm and 18mm of setup]  (motion)  {采集运动激励序列\\（双目图像 + IMU）};
+\node[data, below right=12mm and 18mm of setup] (static)  {平台静置采集\\长时 IMU 数据};
+
+% ── 阶段一：双目相机内外参标定 ────────────────────────────────
+\node[proc, below=12mm of motion] (stereo)
+    {阶段一：双目相机内外参标定\\pinhole-radtan 模型，求解\\内参、畸变系数与基线外参};
+
+% ── 阶段三：Allan 方差分析（右侧独立） ────────────────────────
+\node[proc, below=12mm of static] (allan)
+    {阶段三：IMU 噪声参数标定\\Allan 方差分析\\估计噪声密度与随机游走};
+
+% ── 阶段二：相机-IMU 联合标定 ────────────────────────────────
+\node[proc, below=12mm of stereo] (camimu)
+    {阶段二：相机-IMU 联合标定\\Kalibr 联合批量优化\\估计 $T_{IC}$ 与时间偏移量};
+
+% ── 系统部署 ──────────────────────────────────────────────────
+\node[note, below=18mm of camimu] (deploy)
+    {系统部署参数：\\
+     \quad 1.~图像去畸变与双目几何约束构建\\
+     \quad 2.~IMU 预积分噪声模型（$\sigma_\mathrm{gyr}$，$\sigma_\mathrm{acc}$，随机游走）\\
+     \quad 3.~后端优化预积分协方差与权重配置};
+
+% ── 连线 ──────────────────────────────────────────────────────
+\draw[line] (setup)  -- (motion);
+\draw[line] (setup)  -- (static);
+\draw[line] (motion) -- (stereo);
+\draw[line] (static) -- (allan);
+\draw[line] (stereo) -- node[label]{内参/畸变/基线\\作为初值} (camimu);
+\draw[line] (camimu) -- (deploy);
+% Allan 方差结果汇入系统部署
+\draw[line] (allan)  |- (deploy);
 
 \end{tikzpicture}

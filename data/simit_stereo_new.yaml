@@ -1,0 +1,76 @@
+cameras:
+- T_B_C:
+    cols: 4
+    data: [9.9999405511795592e-01, -3.4324033052524671e-03, 3.2914479599368819e-04, 2.4818227130311173e-02,
+      3.4318630252549494e-03, 9.9999278558632543e-01, 1.6282172696496808e-03, -6.0795341306909015e-02,
+      -3.3473111974498580e-04, -1.6270780102347448e-03, 9.9999862028516129e-01, 1.2252412668897997e-02,
+      0.0, 0.0, 0.0, 1.0]
+    rows: 4
+  calib_date: 0
+  camera:
+    distortion:
+      parameters:
+        cols: 1
+        data: [-0.3851939106752631, 0.15226164253585386, 6.332206826141758e-05, 0.000244630372361477]
+        rows: 4
+      type: radial-tangential
+    image_height: 480
+    image_width: 640
+    intrinsics:
+      cols: 1
+      data: [482.56616775270635, 482.6127748602745, 333.34131197179096, 268.28528173173777]
+      rows: 4
+    label: cam0
+    line-delay-nanoseconds: 0
+    type: pinhole
+  description: /cam0/image_rect
+  serial_no: 0
+- T_B_C:
+    cols: 4
+    data: [9.9999484062554289e-01, -3.1085346233508523e-03, 8.0977453065213896e-04, 1.2336708758168050e-01,
+      3.1057202784169060e-03, 9.9998921266992957e-01, 3.4538450061544733e-03, -5.9929781881002599e-02,
+      -8.2050219213231285e-04, -3.4513122532939776e-03, 9.9999370759014428e-01, 6.2650940970342206e-03,
+      0.0, 0.0, 0.0, 1.0]
+    rows: 4
+  calib_date: 0
+  camera:
+    distortion:
+      parameters:
+        cols: 1
+        data: [-0.38850732040298325, 0.1622508389761639, -1.7157289191803763e-05,
+          -0.00032518965764643723]
+        rows: 4
+      type: radial-tangential
+    image_height: 480
+    image_width: 640
+    intrinsics:
+      cols: 1
+      data: [480.45612389402055, 480.5388634126977, 331.05318125496314, 241.4544431954045]
+      rows: 4
+    label: cam1
+    line-delay-nanoseconds: 0
+    type: pinhole
+  description: /cam1/image_rect
+  serial_no: 0
+label: ../param/calib/stereo_imu_april_2-camchain-imucam.yaml
+
+imu_params:
+  acc_max: 176.0
+  delay_imu_cam: 0.0
+  g: 9.8082
+  imu_rate: 200.0
+  max_imu_delta_t: 0.01
+  omega_max: 7.8
+  sigma_acc_bias_c: 0.0002
+  sigma_acc_c: 0.01
+  sigma_integration: 0.0
+  sigma_omega_bias_c: 1.0e-05
+  sigma_omega_c: 0.001
+
+imu_initialization:
+  acc_bias: [0.0, 0.0, 0.0]
+  acc_bias_sigma: 0.01
+  omega_bias: [0.0, 0.0, 0.0]
+  omega_bias_sigma: 0.001
+  velocity: [0.0, 0.0, 0.0]
+  velocity_sigma: 1.0

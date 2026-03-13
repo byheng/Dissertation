@@ -1,0 +1,35 @@
+\begin{tikzpicture}
+\begin{groupplot}[
+    group style={group size=2 by 2, horizontal sep=1.0cm, vertical sep=1.4cm},
+    width=0.40\textwidth,
+    height=0.28\textwidth,
+    ybar,
+    ymin=0,
+    enlarge x limits=0.2,
+    symbolic x coords={SV+Schur Kernel,SchurVINS,SVO,VINS-Fusion,OpenVINS},
+    xtick=data,
+    xticklabel style={rotate=20,anchor=east,font=\scriptsize},
+    tick label style={font=\scriptsize},
+    label style={font=\scriptsize},
+    title style={font=\footnotesize},
+    cycle list={
+        {fill=blue!60},
+        {fill=orange!70},
+        {fill=green!60},
+        {fill=red!60},
+        {fill=purple!60}
+    },
+]
+\nextgroupplot[title={运行帧率 (FPS)},ybar]
+\addplot coordinates {(SV+Schur Kernel,18.5) (SchurVINS,15.6) (SVO,7.3) (VINS-Fusion,5.9) (OpenVINS,12.8)};
+
+\nextgroupplot[title={CPU 平均利用率 (\%)},ybar]
+\addplot coordinates {(SV+Schur Kernel,54) (SchurVINS,67) (SVO,75) (VINS-Fusion,98) (OpenVINS,77)};
+
+\nextgroupplot[title={功耗 (W)},ybar,ymin=6]
+\addplot coordinates {(SV+Schur Kernel,6.80) (SchurVINS,7.04) (SVO,7.22) (VINS-Fusion,7.98) (OpenVINS,7.12)};
+
+\nextgroupplot[title={ATE RMSE (m)},ybar]
+\addplot coordinates {(SV+Schur Kernel,0.042) (SchurVINS,0.049) (SVO,0.080) (VINS-Fusion,0.91) (OpenVINS,0.072)};
+\end{groupplot}
+\end{tikzpicture}

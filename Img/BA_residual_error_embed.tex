@@ -1,0 +1,93 @@
+% BA_residual_error_embed.tex - 可嵌入版本（无 documentclass）
+% 使用方法: \input{figures/BA_residual_error_embed.tex}
+% 字体: 中文使用宋体（继承文档设置），英文使用 Times New Roman（newtxtext）
+
+\begin{tikzpicture}[
+    scale=1.1,
+    every node/.append style={font=\rmfamily},  % 确保使用衬线字体（Times/宋体）
+    camera/.style={draw, fill=black!90, minimum width=0.3cm, minimum height=0.2cm, inner sep=0pt},
+    plane/.style={draw, thick, fill=white, fill opacity=0.85},
+    landmark/.style={circle, fill=green!70!black, inner sep=1.2pt},
+    feat/.style={circle, fill=red, inner sep=0.8pt},
+    projpoint/.style={circle, inner sep=1.2pt}
+]
+
+% --- 左侧：Bundle Adjustment 示意图 ---
+\begin{scope}[shift={(0,0)}]
+    \node[font=\large\bfseries] at (1.5, 4.4) {Bundle Adjustment};
+
+    % 3D 路标点
+    \node[landmark] (L1) at (0.2, 3.2) {}; \node[above, font=\small] at (L1) {$L_1$};
+    \node[landmark] (L2) at (1.5, 3.6) {}; \node[above, font=\small] at (L2) {$L_5$};
+    \node[landmark] (L3) at (2.8, 3.4) {}; \node[above, font=\small] at (L3) {$L_8$};
+
+    % --- 相机 C1 (带位置修正的平面) ---
+    \node[camera] (C1) at (-1, 0) {}; \node[below] at (C1) {$C_1$};
+    % 定义 C1 的成像平面四个顶点，确保投影点在矩形内
+    \draw[plane] (-0.7, 0.4) -- (0.1, 0.7) -- (0.0, 1.4) -- (-0.8, 1.1) -- cycle;
+    % 投影路径与落在平面内的点
+    \draw[purple!40, thin] (C1.center) -- (L1);
+    \draw[purple!40, thin] (C1.center) -- (L2);
+    \node[feat] at (-0.66, 0.9) {}; % 手动微调确保在平面内
+    \node[feat] at (-0.23, 1.1) {};
+
+    % --- 相机 C2 ---
+    \node[camera] (C2) at (1.5, -0.2) {}; \node[below] at (C2) {$C_2$};
+    \draw[plane] (1.0, 0.6) rectangle (2.0, 1.4);
+    \draw[orange!60, thin] (C2.center) -- (L1);
+    \draw[orange!60, thin] (C2.center) -- (L2);
+    \draw[orange!60, thin] (C2.center) -- (L3);
+    \node[feat] at (1.08, 0.9) {};
+    \node[feat] at (1.5, 1.1) {};
+    \node[feat] at (1.88, 0.87) {};
+
+    % --- 相机 C3 ---
+    \node[camera] (C3) at (4, 0) {}; \node[below] at (C3) {$C_3$};
+    \draw[plane] (3.8, 0.4) -- (3.0, 0.7) -- (3.1, 1.4) -- (3.9, 1.1) -- cycle;
+    \draw[cyan!60, thin] (C3.center) -- (L2);
+    \draw[cyan!60, thin] (C3.center) -- (L3);
+    \node[feat] at (3.26, 1.1) {};
+    \node[feat] at (3.68, 0.9) {};
+\end{scope}
+
+% --- 中间分割线 ---
+\draw[dashed, gray!30] (5.2, -0.5) -- (5.2, 4.5);
+
+% --- 右侧：重投影误差 ---
+\begin{scope}[shift={(7.5,0)}]
+    \node[font=\large\bfseries] at (1.5, 4.4) {Reprojection Error};
+
+    \node[landmark, label=above:{$L_j$}] (L) at (1.5, 3.5) {};
+
+    % 相机 Ci
+    \node[camera] (RC1) at (-0.5, 0) {}; \node[below] at (RC1) {$C_i$};
+    \draw[plane] (-0.3, 0.4) -- (0.7, 0.7) -- (0.4, 1.4) -- (-0.6, 1.1) -- cycle;
+    \draw[dashed, gray!60] (RC1.center) -- (L);
+    \node[projpoint, fill=red, label=below:{\small $p_{ij}$}] (p_obs1) at (0.0, 0.95) {};
+
+    % 相机 Ci+1
+    \node[camera] (RC2) at (3.5, 0) {}; \node[below] at (RC2) {$C_{i+1}$};
+    \draw[plane] (3.3, 0.5) -- (2.0, 0.7) -- (2.55, 1.8) -- (3.8, 1.6) -- cycle;
+    \draw[dashed, gray!60] (RC2.center) -- (L);
+
+    % 观测点与重投影点（确保在平面内）
+    \node[projpoint, fill=red] (p_meas) at (2.9, 1.05) {};
+    \node[below left, font=\tiny, inner sep=1pt] at (p_meas) {$p_{i+1,j}$};
+
+    \node[projpoint, fill=green!70!black] (p_reproj) at (3.1, 1.2) {};
+    \node[above right, font=\tiny, inner sep=1pt] at (p_reproj) {$\hat{p}_{i+1,j}$};
+
+    % 误差连线 (Residual)
+    \draw[thick, red] (p_meas) -- (p_reproj);
+
+    % 修正后的标签位置 (使用引线指向误差)
+    \draw[Stealth-, thin, gray] ($(p_meas)!0.5!(p_reproj)$ |- p_meas) -- (3.4, 0.5)
+        node[right, black, font=\small] {$e = \|p - \hat{p}\|$};
+
+    % 重投影曲线 (调大弧度避开文字)
+    \draw[orange, ultra thick, -Stealth] (p_obs1) to[out=45, in=135]
+        node[midway, fill=white, inner sep=1.5pt, font=\small\itshape] {Reprojection} (p_reproj);
+
+\end{scope}
+
+\end{tikzpicture}

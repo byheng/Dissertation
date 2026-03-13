@@ -91,5 +91,6 @@
         "editor.unicodeHighlight.invisibleCharacters": false
     },
     "latex-workshop.latex.autoBuild.run": "never",
-    "latex-workshop.hover.preview.enabled": true
+    "latex-workshop.hover.preview.enabled": true,
+    "claudeCode.allowDangerouslySkipPermissions": true
 }
