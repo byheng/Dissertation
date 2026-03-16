@@ -355,30 +355,47 @@ V2\_02\_medium & \textbf{0.075} & 0.080 \\
 \end{tabular}
 \end{table}
 
-\begin{figure}[h!t]
+\begin{figure*}[!t]
 \centering
-\begin{minipage}[b]{0.32\linewidth}
-  \centering
-  \includegraphics[width=\linewidth]{Img/MH_01_easy_traj_trajectories.png}
-  \small MH\_01\_easy (ATE: 0.042 m)
-\end{minipage}\hfill
-\begin{minipage}[b]{0.32\linewidth}
-  \centering
-  \includegraphics[width=\linewidth]{Img/V1_01_easy_traj_trajectories.png}
-  \small V1\_01\_easy (ATE: 0.035 m)
-\end{minipage}\hfill
-\begin{minipage}[b]{0.32\linewidth}
-  \centering
-  \includegraphics[width=\linewidth]{Img/MH_04_difficult_traj_trajectories.png}
-  \small MH\_04\_difficult (ATE: 0.113 m)
-\end{minipage}
-\bicaption{EuRoC 数据集代表性序列轨迹对比}{Trajectory comparison on representative EuRoC sequences}
+% \begin{minipage}[b]{0.32\textwidth}
+%   \centering
+%   \begin{tikzpicture}[spy using outlines={circle, magnification=2.5, size=1.2cm, connect spies, every spy on node/.style={draw=red, line width=0.6pt}, every spy in node/.style={draw=red, line width=0.6pt}}]
+%     \node[inner sep=0] (img) {\includegraphics[width=\textwidth]{Img/V2_01_easy_traj_trajectories.pdf}};
+%     \spy on (2.2,1.8) in node at (1.9,-1.4);
+%     \spy on (0.2,2.0) in node at (-0.1,1);
+%   \end{tikzpicture}
+%   \centerline{(a)}
+% \end{minipage}
+% \hfill
+% \begin{minipage}[b]{0.32\textwidth}
+%   \centering
+%   \begin{tikzpicture}[spy using outlines={circle, magnification=2.5, size=1.2cm, connect spies, every spy on node/.style={draw=red, line width=0.6pt}, every spy in node/.style={draw=red, line width=0.6pt}}]
+%     \node[inner sep=0] (img) {\includegraphics[width=\textwidth]{Img/V2_02_medium_traj_trajectories.pdf}};
+%     \spy on (0.7,-0.6) in node at (1.5,-1.3);
+%     \spy on (0.3,1.8) in node at (-0.3,1);
+%   \end{tikzpicture}
+%   \centerline{(b)}
+% \end{minipage}
+% \hfill
+% \begin{minipage}[b]{0.32\textwidth}
+%   \centering
+%   \begin{tikzpicture}[spy using outlines={circle, magnification=2.5, size=1.2cm, connect spies, every spy on node/.style={draw=red, line width=0.6pt}, every spy in node/.style={draw=red, line width=0.6pt}}]
+%     \node[inner sep=0] (img) {\includegraphics[width=\textwidth]{Img/MH_05_difficult_traj_trajectories.pdf}};
+%     \spy on (-0.4,-1) in node at (1.5,1.3);
+%     \spy on (2.4,-1.8) in node at (-1.3,-1);
+%   \end{tikzpicture}
+%   \centerline{(c)}
+% \end{minipage}
+\includegraphics[width=0.90\linewidth]{Img/euroc}
+\bicaption{EuRoC数据集代表性序列轨迹对比。虚线为真值轨迹，实线为本文软硬协同方案估计轨迹。(a) V2\_01\_easy，ATE RMSE = 0.063\,m；(b) V2\_02\_medium，ATE RMSE = 0.080\,m；(c) MH\_05\_difficult，ATE RMSE = 0.098\,m}{Trajectory comparison on representative EuRoC sequences. Dashed: ground truth; solid: proposed SW/HW co-design. (a) V2\_01\_easy, ATE RMSE = 0.063\,m; (b) V2\_02\_medium, ATE RMSE = 0.080\,m; (c) MH\_05\_difficult, ATE RMSE = 0.098\,m}
 \label{fig:euroc_trajectories}
-\end{figure}
+\end{figure*}
 
 为验证硬件加速不会引入额外的数值误差，本文在 EuRoC MAV 与 TUM-VI 数据集上对比了纯软件实现与软硬协同实现的轨迹精度。实验结果分别如表~\ref{tab:trajectory_accuracy} 和表~\ref{tab:ate_tumvi} 所示。
 
-从表~\ref{tab:trajectory_accuracy} 可以看出，FPGA 加速器在 EuRoC 数据集各测试序列上的轨迹精度与纯软件基准基本一致（平均 ATE 分别为 0.073 m 与 0.075 m），误差差异处于数值噪声范围内。图~\ref{fig:euroc_trajectories} 展示了三条代表性序列（MH\_01\_easy、V1\_01\_easy 和 MH\_04\_difficult）的估计轨迹与真值轨迹对比，可以看出，在易、中、难不同难度序列下，系统均能保持与真值高度吻合的轨迹，即便在 MH\_04\_difficult 等剧烈运动场景下轨迹估计依然稳定，验证了软硬协同设计在精度上的等效性。同样，表~\ref{tab:ate_tumvi} 在 TUM-VI 数据集上的结果显示，软硬协同加速方案的平均 ATE 为 0.152 m，优于纯软件基准的 0.182 m，且在多数序列上表现更优。图~\ref{fig:tumvi_corridor} 展示了系统在 TUM-VI 走廊序列下的实时建图与定位轨迹结果，可以看到，即便在长距离走廊这种具有挑战性的环境下，系统依然能够稳定构建精确的特征地图并保持平滑的轨迹估计。这些结果表明，硬件加速器在显著提高计算效率的同时，不仅未牺牲定位精度，在部分场景下甚至因数值稳定性的改善而略有提升。
+从表~\ref{tab:trajectory_accuracy} 可以看出，FPGA 加速器在 EuRoC 数据集各测试序列上的轨迹精度与纯软件基准基本一致（平均 ATE 分别为 0.073 m 与 0.075 m），误差差异处于数值噪声范围内。图~\ref{fig:euroc_trajectories} 进一步展示了三个代表性序列的轨迹对比结果（虚线为真值，实线为估计轨迹）。可以看到，无论是简单场景（V2\_01\_easy）、中等场景（V2\_02\_medium）还是困难场景（MH\_05\_difficult），FPGA 加速方案均能准确跟踪真实轨迹，验证了本文硬件实现的数值正确性。
+
+同样，表~\ref{tab:ate_tumvi} 在 TUM-VI 数据集上的结果显示，软硬协同加速方案的平均 ATE 为 0.152 m，优于纯软件基准的 0.182 m，且在多数序列上表现更优。图~\ref{fig:tumvi_corridor} 展示了系统在 TUM-VI 走廊序列下的实时建图与定位轨迹结果，可以看到，即便在长距离走廊这种具有挑战性的环境下，系统依然能够稳定构建精确的特征地图并保持平滑的轨迹估计。这些结果表明，硬件加速器在显著提高计算效率的同时，不仅未牺牲定位精度，在部分场景下甚至因数值稳定性的改善而略有提升。
 
 \section{计算延迟与加速比}
 
@@ -410,9 +427,9 @@ Schur Kernel & 2.84 & \textbf{0.76} & \textbf{3.74$\times$} \\
 
 \section{资源利用率分析}
 
-表~\ref{tab:resource_comparison} 展示了本文与同类 FPGA 加速方案的资源占用与能效对比。本文仅将后端 Schur Kernel（Hessian 构建 + Schur 消元）部署于 PL，其余系统控制与前端仍由 PS 端完成（包括滑动窗口管理、特征跟踪/匹配、状态预测与优化迭代控制等）；对比表中的外部工作均为同类后端或 BA/SLAM 加速器在 FPGA 上的实现，统计范围为 FPGA 芯片上资源占用。表中 Liu Q~\cite{liu2022energy}、Liu Q~\cite{liu2020pi}、Liu W~\cite{liu2021archytas} 与 Guo R~\cite{guo2022fpga} 均属于优化法后端方案，而 Gan Y~\cite{gan2021eudoxus} 为滤波法后端方案；本文在问题建模上采用优化法，在问题求解上采用滤波法的 EKF 更新，实现了优化建模与滤波求解的结合。优化法通常通过构建全局代价函数并求解批量最小二乘问题，而滤波法则以递推更新方式进行状态估计并强调线性化的逐步更新特性。由于软硬分工边界不同，资源规模存在差异，本文重点强调后端核心计算的协同设计与资源效率，尤其在 BRAM 占用方面显著优于同类工作，这得益于 SOB 编码对存储空间的优化。
+表~\ref{tab:resource_comparison} 展示了本文与同类 FPGA 加速方案的资源占用与能效对比。本文仅将后端 Schur Kernel（Hessian 构建 + Schur 消元）部署于 PL，其余系统控制与前端仍由 PS 端完成（包括滑动窗口管理、特征跟踪/匹配、状态预测与优化迭代控制等）；对比表中的外部工作均为同类后端或 BA/SLAM 加速器在 FPGA 上的实现，统计范围为 FPGA 芯片上资源占用。表中 Liu Q~\cite{liu2022cicc}、Liu Q~\cite{liu2020pi}、Liu W~\cite{liu2021archytas} 与 Guo R~\cite{guo2022fpga} 均属于优化法后端方案，而 Gan Y~\cite{gan2021eudoxus} 为滤波法后端方案；本文在问题建模上采用优化法，在问题求解上采用滤波法的 EKF 更新，实现了优化建模与滤波求解的结合。优化法通常通过构建全局代价函数并求解批量最小二乘问题，而滤波法则以递推更新方式进行状态估计并强调线性化的逐步更新特性。由于软硬分工边界不同，资源规模存在差异，本文重点强调后端核心计算的协同设计与资源效率，尤其在 BRAM 占用方面显著优于同类工作，这得益于 SOB 编码对存储空间的优化。
 
-为进一步体现能效优势，表中补充了帧率、功耗与单帧能耗（功耗/帧率）。其中帧率与功耗数据均在仅运行后端方法的条件下测得，反映该后端模块在对应平台上的极限性能。单帧能耗反映处理一帧所需能量，能够抵消不同平台帧率差异带来的偏置。可以看到，本文方案在保持较高帧率的同时，单帧能耗最低（19.1~mJ），说明本文方案在能效方面优势更为突出。
+为进一步体现能效优势，表中统计了帧率、功耗与单帧能耗（功耗/帧率）。其中帧率与功耗数据均在仅运行后端方法的条件下测得，反映该后端模块在对应平台上的极限性能。单帧能耗反映处理一帧所需能量，能够抵消不同平台帧率差异带来的偏置。可以看到，本文方案在保持较高帧率的同时，单帧能耗最低（35.6~mJ），说明本文方案在能效方面优势更为突出。值得注意的是，本文方案帧率显著高于其他方案，这不仅源于硬件流水线的高效设计，还得益于算法层面的轻量化优势：本文采用 Hessian 构建 + Schur 消元 + EKF 更新的单步求解策略，每帧仅需一次线性化与状态更新即可完成后端优化；而对比方案多采用 Levenberg-Marquardt（LM）等迭代优化算法，每帧需执行多轮迭代直至收敛，计算量随迭代次数线性增长。这种算法结构上的差异使得本文方案在单帧计算量上天然更低，与 FPGA 定制化流水线的结合进一步放大了帧率优势。
 
 \begin{table*}[!t]
 \centering
@@ -420,18 +437,98 @@ Schur Kernel & 2.84 & \textbf{0.76} & \textbf{3.74$\times$} \\
 \label{tab:resource_comparison}
 \begin{tabular}{lcccccc}
 \toprule
-资源类型 & Liu Q \cite{liu2022energy} & Gan Y \cite{gan2021eudoxus} & Liu Q \cite{liu2020pi} & Liu W \cite{liu2021archytas} & Guo R \cite{guo2022fpga} & \textbf{Ours} \\
+资源类型 & Liu Q \cite{liu2022cicc} & Gan Y \cite{gan2021eudoxus} & Liu Q \cite{liu2020pi} & Liu W \cite{liu2021archytas} & Guo R \cite{guo2022fpga} & \textbf{Ours} \\
 \midrule
 LUT  & 144108 & 350671 & 118995 & 136432 & 23489  & 114305 \\
 FF   & 172935 & 239347 & 142411 & 163006 & 22696  & 155211 \\
 DSP  & 869    & 1284   & 880    & 849    & 238    & 579    \\
 BRAM & 1206 KB & 5787 KB & 2337 KB & 1149 KB & 230 KB & \textbf{67 KB} \\
-帧率  & 60.86 FPS & 22.40 FPS & 4.00 FPS & 50 FPS & 83.3 FPS & 337 FPS \\
+帧率  & 60.86 FPS & 22.40 FPS & 4.00 FPS & 50 FPS & 83.3 FPS & 191 FPS \\
 功耗  & 3.45 W & 8.96 W & 5.50 W & 5.00 W & N/A & 6.45 W \\
-单帧能耗  & 56.7 mJ & 400 mJ & 1375 mJ & 100 mJ & N/A & \textbf{19.1 mJ} \\
+单帧能耗  & 56.7 mJ & 400 mJ & 1375 mJ & 100 mJ & N/A & \textbf{35.6 mJ} \\
 \bottomrule
 \end{tabular}
 \end{table*}
+
+\subsection{不同硬件平台加速方案对比}
+
+为全面评估本文 FPGA 加速方案的技术定位与优势，本节对比分析了面向 SLAM 后端优化的不同硬件加速平台。为实现公平的同算法跨平台对比，本文将 Hessian 构建与 Schur 消元模块使用 CUDA 实现，并部署于 NVIDIA Jetson TX2 开发板，与 FPGA 方案在相同算法、相同数据下进行性能与功耗的直接对比。此外，还与专用 ASIC 芯片 SLAM-CIM\cite{Li2024SLAMCIM}（同为后端加速方案）进行参考性对比，从硬件特性、性能能效、精度表现以及算法适配性等维度揭示不同硬件架构的权衡特点。
+
+\subsubsection{硬件平台特性对比}
+
+表~\ref{tab:platform_comparison} 总结了三类方案的核心硬件特性。本文 FPGA 方案基于 Xilinx Zynq UltraScale+ 异构平台，采用 PS-PL 协同架构，兼具灵活性与并行计算能力；GPU 对比方案将本文相同的 Hessian 构建与 Schur 消元算法使用 CUDA 实现，部署于 NVIDIA Jetson TX2 平台，利用 256 核 Pascal GPU 进行并行计算；ASIC 方案\cite{Li2024SLAMCIM}则采用 28nm CMOS 工艺实现存算一体（Compute-In-Memory, CIM）架构，专门针对 SLAM 后端的矩阵运算进行定制优化。
+
+\begin{table*}[h!t]
+\centering
+\bicaption{不同硬件平台特性对比}{Comparison of hardware platform characteristics}
+\label{tab:platform_comparison}
+\scriptsize
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lccc}
+\toprule
+特性 & FPGA (本文) & GPU (CUDA) & ASIC\cite{Li2024SLAMCIM} \\
+\midrule
+硬件平台 & Zynq UltraScale+ & Jetson TX2 & 28nm CMOS \\
+处理器 & ARM A53 + PL & Denver 2 + ARM A57 & 定制处理器 \\
+计算单元 & 流水线+DSP & 256 CUDA核心 & CIM宏阵列 \\
+工作频率 & 250 MHz (PL) & 1.3 GHz (GPU) & 12.5--300 MHz \\
+工艺节点 & 16nm FinFET & 16nm FinFET & 28nm CMOS \\
+加速目标 & Hessian+Schur & Hessian+Schur & 后端优化 \\
+\bottomrule
+\end{tabular*}
+\end{table*}
+
+从架构特点来看，FPGA 具有可重构性，支持针对特定算法的深度定制优化（如本文的 SOB 编码与五级流水线设计），同时保持了算法迭代的灵活性；GPU 依赖通用的 SIMT（Single Instruction Multiple Threads）架构，适合大规模数据并行任务，但在 Schur 消元等非规则稀疏计算中难以充分利用硬件并行度；ASIC 则通过硬件固化获得较高能效，但算法一旦流片后难以修改，开发周期较长且工程成本较高。
+
+\subsubsection{性能、能效与精度对比}
+
+表~\ref{tab:performance_comparison} 对比了三类方案的性能与能效表现。本文 FPGA 方案的 Schur Kernel 单帧延迟为 0.76 ms，相比 ARM CPU 实现 3.74 倍加速，整体后端处理帧率可达 191 FPS。在相同算法的 CUDA 实现中，Jetson TX2 的后端处理延迟与帧率如表~\ref{tab:performance_comparison} 所示。作为同类后端加速方案，ASIC 方案\cite{Li2024SLAMCIM}针对固定规模问题（192$\times$192 稀疏矩阵）实现了 2.8 ms 的处理延迟（约 357 FPS），但其适用场景受限于芯片设计时预定义的参数规模。由于本文 FPGA 方案与 GPU CUDA 方案实现了相同的算法模块并在相同的 EuRoC 数据集上进行测试，二者之间的对比可以直接反映 FPGA 与 GPU 在该类非规则稀疏计算任务上的平台特性差异。
+
+\begin{table*}[h!t]
+\centering
+\bicaption{不同加速方案性能与能效对比}{Performance and energy efficiency comparison}
+\label{tab:performance_comparison}
+\scriptsize
+\begin{tabular}{lccc}
+\toprule
+指标 & FPGA (本文) & GPU (CUDA) & ASIC\cite{Li2024SLAMCIM} \\
+\midrule
+加速目标 & Hessian+Schur & Hessian+Schur & 后端优化 \\
+后端处理帧率 & 191 FPS & 87 FPS & \textbf{357 FPS} \\
+动态功耗 & 6.80 W & 19.2 W & 35.53 W \\
+单帧能耗 & \textbf{35.6 mJ} & 220.6 mJ & 99.5 mJ \\
+加速比 (vs CPU) & 3.74$\times$ & 1.4$\times$ & \textbf{5.8$\times$} \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+在后端加速性能方面，本文 FPGA 方案的后端处理帧率为 191 FPS，虽低于 ASIC 方案的 357 FPS，但在单帧能耗上具有明显优势。本文 FPGA 方案的单帧能耗为 35.6 mJ，显著低于 ASIC 方案的 99.5 mJ。ASIC 方案帧率较高的主要原因在于其采用存算一体架构对固定规模矩阵运算进行了深度硬件固化，但这也牺牲了算法灵活性。尽管 ASIC 在峰值算力能效上达到 53.3 TFLOPS/W，但其系统级能效（包含数据搬运与控制逻辑）降至 0.182 TFLOPS/W\cite{Li2024SLAMCIM}，且 35.53 W 的动态功耗限制了其在移动机器人等功耗敏感场景下的应用。对于 GPU CUDA 方案，Jetson TX2 平台的功耗与处理延迟的具体对比结果详见表~\ref{tab:performance_comparison}，该对比能够直接体现相同算法在不同硬件架构上的效率差异。相比之下，本文 FPGA 方案通过 SOB 编码与动态门控机制，在保持较低功耗（6.80 W）的同时实现了较优的后端处理效率，体现了面向算法特性的定制化硬件设计在嵌入式场景下的优势。
+
+\subsubsection{算法适配性与灵活性对比}
+
+表~\ref{tab:flexibility_comparison} 从算法适配性与开发灵活性角度对比了三类方案。FPGA 方案支持在线重构与算法迭代，可通过修改 RTL/HLS 代码适配不同的 SLAM 算法与问题规模；GPU 方案依赖 CUDA 等通用并行编程框架，算法移植相对便捷，但对 Schur 消元等非规则稀疏运算的硬件利用率有限；ASIC 方案在流片后算法完全固化，难以适应 SLAM 算法从滤波法到优化法、从稀疏到稠密等持续演进过程。
+
+\begin{table*}[h!t]
+\centering
+\bicaption{算法适配性与灵活性对比}{Comparison of algorithm adaptability and flexibility}
+\label{tab:flexibility_comparison}
+\scriptsize
+\begin{tabular}{lccc}
+\toprule
+维度 & FPGA (本文) & GPU (CUDA) & ASIC\cite{Li2024SLAMCIM} \\
+\midrule
+算法可重构性 & 高 & 中 & 无 \\
+问题规模适配 & 灵活 & 灵活 & 固定 \\
+开发周期 & 3--6 个月 & 1--3 个月 & 12--24 个月 \\
+NRE 成本 & 低 & 低 & 高（数百万美元） \\
+单片成本 & 中 & 中 & 低（量产后） \\
+软硬协同设计 & 支持 & 部分支持 & 不支持 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+在软硬协同设计方面，本文 FPGA 方案通过 PS-PL 异构架构实现了算法层面的深度协同：将计算密集型的 Hessian 构建与 Schur 消元下沉到 PL 端，控制逻辑与 EKF 更新保留在 PS 端，避免了全系统硬化带来的灵活性损失。GPU 方案虽然也支持 CPU-GPU 协同，但其协同方式更多依赖主机端任务调度与通用并行计算框架，难以像 FPGA 那样对数据通路、存储访问和控制时序进行细粒度定制。ASIC 方案则完全依赖于设计阶段的算法选型与参数配置，一旦流片后无法适应算法演进或应用需求变化。
+
+综合来看，FPGA 方案更适合功耗、实时性与算法灵活性并重的嵌入式后端优化场景；GPU 平台在通用并行计算中具有编程便捷的优势，但在 Schur 消元等非规则稀疏计算任务上效率受限，且功耗较高；ASIC 方案则更适用于算法相对稳定、具备大规模量产需求的场景。对于本文面向端侧 SLAM 后端加速的目标，FPGA 在单帧能耗、算法可重构性与开发成本之间取得了较为均衡的折中。
 
 \section{功耗与能效分析}
 
@@ -503,11 +600,11 @@ DMA 输出传输 & 103.12 KB & \textbf{79.70 KB} & \textbf{22.72\%} \\
 \label{fig:VIOboard}
 \end{figure}
 
-测试环境选择在户外真实场景进行，以验证系统在复杂动态环境下的定位与建图鲁棒性。如图~\ref{fig:outdoortest} 所示，实验场景包含光照变化、纹理稠密与纹理稀疏区域交替出现等典型因素。系统在全程运行中保持连续建图与位姿输出，轨迹整体平滑且与环境结构一致，表明软硬协同后端能够在实际场景下维持稳定的优化效果。
+测试环境选择在户外真实场景进行，以验证系统在复杂动态环境下的定位与建图鲁棒性。测试场景涵盖了城市建筑、车辆、树林等多种复杂环境要素。如图~\ref{fig:outdoortest} 所示，系统在户外大场景中展现了优异的定位精度与建图一致性。
 
 \begin{figure}[h!t]
 \centering
-\includegraphics[width=0.9\linewidth]{Img/outdoors.pdf}
+\includegraphics[width=0.9\linewidth]{Img/outdoors_new.pdf}
 \bicaption{户外真实场景下的定位与建图测试结果}{Localization and mapping results in an outdoor real-world scene}
 \label{fig:outdoortest}
 \end{figure}
@@ -535,6 +632,6 @@ DMA 输出传输 & 103.12 KB & \textbf{79.70 KB} & \textbf{22.72\%} \\
 
 在算法精度方面，FPGA 加速器在 EuRoC 数据集上的平均 ATE 为 $0.073\,\mathrm{m}$，与纯软件基准（$0.075\,\mathrm{m}$）几乎持平，误差差异处于数值噪声范围内；在 TUM-VI 数据集上，软硬协同方案平均 ATE 为 $0.152\,\mathrm{m}$，优于纯软件基准的 $0.182\,\mathrm{m}$，在多数序列上数值稳定性略有改善。实验结果表明，硬件浮点流水线在显著提高吞吐的同时未引入额外的数值误差。
 
-在计算效率方面，Schur Kernel 硬件实现将单次后端优化延迟从 $2.84\,\mathrm{ms}$ 压缩至 $0.76\,\mathrm{ms}$，实现 $\mathbf{3.74\times}$ 的加速比，系统后端优化频率稳定在 $\mathbf{25\,\mathrm{Hz}}$ 以上，满足实时 VIO 的运行要求。在资源利用率方面，本文方案 BRAM 占用仅为 $\mathbf{67\,\mathrm{KB}}$，显著低于同类 FPGA 后端加速方案（最低对比为 $230\,\mathrm{KB}$，最高达 $5787\,\mathrm{KB}$），这得益于 SOB 编码对 Hessian 稀疏子块存储的针对性优化。在功耗与能效方面，FPGA 方案动态功耗为 $6.80\,\mathrm{W}$，单帧能耗为 $\mathbf{19.1\,\mathrm{mJ}}$，优于所有参照方案。
+在计算效率方面，Schur Kernel 硬件实现将单次后端优化延迟从 $2.84\,\mathrm{ms}$ 压缩至 $0.76\,\mathrm{ms}$，实现 $\mathbf{3.74\times}$ 的加速比，系统后端优化频率稳定在 $\mathbf{25\,\mathrm{Hz}}$ 以上，满足实时 VIO 的运行要求。在资源利用率方面，本文方案 BRAM 占用仅为 $\mathbf{67\,\mathrm{KB}}$，显著低于同类 FPGA 后端加速方案（最低对比为 $230\,\mathrm{KB}$，最高达 $5787\,\mathrm{KB}$），这得益于 SOB 编码对 Hessian 稀疏子块存储的针对性优化。在功耗与能效方面，FPGA 方案动态功耗为 $6.80\,\mathrm{W}$，单帧能耗为 $\mathbf{35.6\,\mathrm{mJ}}$，优于所有参照方案。
 
 在 SOB 编码优化效果方面，蒙特卡洛仿真定量分析表明，典型场景（稀疏率 $50\%$）下 SOB 编码可将总浮点运算量从 $1.687\,\mathrm{M}$ 降至 $924.3\,\mathrm{K}$，减少约 $\mathbf{45\%}$；$\mathbf{H}_{pm}$ 存储减少 $27.77\%$，DMA 传输减少 $22.72\%$。稀疏写入特性进一步改善了 BRAM 多端口冲突与总线带宽峰值，有助于提升流水线时序收敛性与传输稳定性。在真实场景部署方面，系统在户外复杂动态环境中的实测验证了软硬协同架构的工程可行性：后端在 $20\,\mathrm{Hz}$ 双目观测流下保持 $25\,\mathrm{Hz}$ 以上的稳定输出，延迟抖动较小，验证了稀疏门控机制对性能波动的有效抑制。综合各项实验结果，本文所设计的加速器方案在精度、实时性、资源效率与能效四个维度上均实现了预期目标，具备面向嵌入式移动平台的实际部署价值。

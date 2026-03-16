@@ -20,7 +20,7 @@ The script automatically creates a `Tmp/` directory for auxiliary files and open
 
 ## Project Status & Progress
 - **Dissertation Title**: 基于 FPGA 的 SLAM 后端软硬协同加速器设计与实现
-- **Last Updated**: 2026-02-12
+- **Last Updated**: 2026-03-17
 - **Current Completion**:
   - [x] GitHub repository setup and codebase initialization.
   - [x] CLAUDE.md persistence document created with methodology.
@@ -29,7 +29,10 @@ The script automatically creates a `Tmp/` directory for auxiliary files and open
   - [x] Chapter 2: Methodology (Expanded with camera models, NLS, Schur theory and citations).
   - [x] Chapter 3: System Architecture (Expanded with data flow, protocols, and detailed SOB logic).
   - [x] Chapter 4: Hardware Design (Jacobi engine, SOB gating, memory optimization, Schur core).
-  - [ ] Chapter 5: Evaluation (Pending).
+  - [~] Chapter 5: Evaluation (In progress — trajectory figures added, content expanding).
+  - [x] Conclusion chapter drafted (Chap_Conclusion.tex).
+  - [x] Chinese and English abstracts rewritten.
+  - [x] Thesis structure diagram updated.
 
 ## Research Methodology (Core Knowledge)
 The dissertation focuses on an FPGA-based hardware/software co-designed SLAM backend accelerator (Schur Kernel).
