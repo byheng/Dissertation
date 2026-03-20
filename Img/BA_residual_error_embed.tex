@@ -81,11 +81,11 @@
     \draw[thick, red] (p_meas) -- (p_reproj);
 
     % 修正后的标签位置 (使用引线指向误差)
-    \draw[Stealth-, thin, gray] ($(p_meas)!0.5!(p_reproj)$ |- p_meas) -- (3.4, 0.5)
+    \draw[-{Stealth[length=2mm]}, thin, gray] ($(p_meas)!0.5!(p_reproj)$ |- p_meas) -- (3.4, 0.5)
         node[right, black, font=\small] {$e = \|p - \hat{p}\|$};
 
     % 重投影曲线 (调大弧度避开文字)
-    \draw[orange, ultra thick, -Stealth] (p_obs1) to[out=45, in=135]
+    \draw[orange, ultra thick, -{Stealth[length=2mm]}] (p_obs1) to[out=45, in=135]
         node[midway, fill=white, inner sep=1.5pt, font=\small\itshape] {Reprojection} (p_reproj);
 
 \end{scope}

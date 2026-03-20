@@ -3,6 +3,7 @@
 % 符号与论文 main.tex 保持一致
 % 字体: 中文使用宋体（继承文档设置），英文使用 Times New Roman（newtxtext）
 
+\usetikzlibrary{arrows.meta}
 \begin{tikzpicture}[
     scale=1.0,
     every node/.append style={font=\rmfamily},  % 确保使用衬线字体（Times/宋体）
@@ -13,9 +14,9 @@
     compute/.style={draw, thick, fill=green!15, rounded corners=2pt, minimum width=1.5cm, minimum height=0.5cm, align=center, font=\scriptsize},
     interface/.style={draw, thick, fill=yellow!25, rounded corners=3pt, minimum width=0.8cm, minimum height=1.8cm, align=center, font=\small},
     phasebox/.style={draw, very thick, rounded corners=5pt, fill=#1, fill opacity=0.08},
-    arrow/.style={->, >=stealth, thick},
-    dataarrow/.style={->, >=stealth, thick, black},
-    ctrlarrow/.style={->, >=stealth, dashed, gray},
+    arrow/.style={->, >=Stealth, thick},
+    dataarrow/.style={->, >=Stealth, thick, black},
+    ctrlarrow/.style={->, >=Stealth, dashed, gray},
 ]
 
 % ========== 外部接口 (左侧竖排) ==========

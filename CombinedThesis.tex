@@ -1,0 +1,98 @@
+%---------------------------------------------------------------------------%
+%-                                                                         -%
+%-                        Combined Thesis Document                        -%
+%-                                                                         -%
+%---------------------------------------------------------------------------%
+\documentclass[twoside]{Style/ucasthesis}%
+
+%---------------------------------------------------------------------------%
+%-                        Helper macros for Combined version (no figures)     -%
+%---------------------------------------------------------------------------%
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta}
+\makeatletter
+\let\Combined@origincludegraphics\includegraphics
+\renewcommand{\includegraphics}[2][]{\Combined@origincludegraphics[#1]{Img/c06h06.png}}
+\makeatother
+
+%---------------------------------------------------------------------------%
+%-\textrm{e Document settings
+%---------------------------------------------------------------------------%
+%-\e Document settings
+%---------------------------------------------------------------------------%
+%---------------------------------------------------------------------------%
+%-                        Helper macros for Combined version (no figures)     -%
+%---------------------------------------------------------------------------%
+%---------------------------------------------------------------------------%
+%-\ndocumentclass Document settings
+%---------------------------------------------------------------------------%
+%-                        Helper macros for Combined version (no figures)     -%
+%---------------------------------------------------------------------------%
+%---------------------------------------------------------------------------%
+%-\e Document settings
+%---------------------------------------------------------------------------%
+%---------------------------------------------------------------------------%
+%->> Document settings
+%---------------------------------------------------------------------------%
+\usepackage{caption}
+\usepackage[super,numbers, list,table,math,tikz]{Style/artratex}
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.8}
+\renewcommand{\textfraction}{0.07}
+\renewcommand{\floatpagefraction}{0.8}
+\setlength{\textfloatsep}{10pt plus 2pt minus 2pt}
+\usepackage{etoolbox}
+
+%---------------------------------------------------------------------------%
+%->> Titlepage information (metadata only, suppress actual generation)
+%---------------------------------------------------------------------------%
+\input{Tex/Frontinfo}%
+\makeatletter
+\@ifundefined{maketitle}{}{%
+    \let\Combined@maketitle\maketitle
+    \renewcommand{\maketitle}{\relax}%
+}
+\@ifundefined{MAKETITLE}{}{%
+    \let\Combined@MAKETITLE\MAKETITLE
+    \renewcommand{\MAKETITLE}{\relax}%
+}
+\@ifundefined{makedeclaration}{}{%
+    \let\Combined@makedeclaration\makedeclaration
+    \renewcommand{\makedeclaration}{\relax}%
+}
+\makeatother
+
+%---------------------------------------------------------------------------%
+%->> Document content
+%---------------------------------------------------------------------------%
+\begin{document}
+\mainmatter
+\chapter{}
+\chapter{}
+\chapter{摘要与正文}
+
+\section{中文摘要}
+\input{Tex/Frontmatter_Abstract_ZH}
+
+\section{英文摘要}
+\input{Tex/Frontmatter_Abstract_EN}
+
+%---------------------------------------------------------------------------%
+%->> Combined main content (chapters downgraded to sections)
+%---------------------------------------------------------------------------%
+{%% local scope for heading redefinitions
+    \let\chapter\section
+    \let\section\subsection
+    \let\subsection\subsubsection
+    \let\subsubsection\paragraph
+    \input{Tex/Mainmatter}% reuse existing chapter files
+}
+
+\section{参考文献}
+\artxifstreq{\artxbib}{bibtex}{% enable bibtex
+    \bibliography{Biblio/ref}% bibliography
+}{%
+    \printbibliography% bibliography
+}
+
+\end{document}
