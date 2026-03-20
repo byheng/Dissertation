@@ -1,3 +1,4 @@
+%!TEX root = ../Thesis.tex
 \chapter{系统架构总体设计}\label{chap:architecture}
 
 本章将详细阐述基于 FPGA 的 SLAM 后端加速器的系统级架构设计。本系统选用赛灵思（Xilinx）Zynq 系列 SoC 作为核心计算平台，该平台通过高性能 AXI 总线将处理器系统（PS）与可编程逻辑（PL）紧密耦合，为软硬协同设计提供了物理基础。在开发流程上，采用 Vivado 工具套件进行硬件逻辑架构设计与综合，利用 Vitis 统一软件平台进行嵌入式驱动与应用开发，并通过 DMA 引擎实现 PS 与 PL 之间的高带宽数据交互。
